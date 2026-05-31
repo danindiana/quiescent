@@ -4,6 +4,7 @@
 
 <p align="center">
   <img alt="shell" src="https://img.shields.io/badge/shell-POSIX%20sh-00e5ff?style=flat-square&labelColor=0b0e14">
+  <img alt="nim" src="https://img.shields.io/badge/lang-Nim-ffe953?style=flat-square&labelColor=0b0e14">
   <img alt="systemd" src="https://img.shields.io/badge/init-systemd-ff3ec9?style=flat-square&labelColor=0b0e14">
   <img alt="platform" src="https://img.shields.io/badge/platform-Linux-39ff14?style=flat-square&labelColor=0b0e14">
   <img alt="hdparm" src="https://img.shields.io/badge/tool-hdparm%20%2F%20smartctl-b56bff?style=flat-square&labelColor=0b0e14">
@@ -130,13 +131,30 @@ sudo systemctl enable --now wd-backup-spindown.service idle-hdd-spindown.service
 Decision rule: **honors `-S` timer → boot oneshot** (`*-spindown.service`); **ignores it but
 obeys `-y` → watcher** (`idle-disk-park.timer` + `idle-disk-park.sh`).
 
+## Two implementations
+
+The watcher comes in two flavours — pick one (don't run both against the same drives):
+
+| | **shell** — `bin/idle-disk-park.sh` | **Nim** — [`nim/`](nim/) `quiescentd` |
+|---|---|---|
+| model | oneshots + a per-tick timer script | one config-driven daemon |
+| state | `/run/*` files + shell globals | in-memory, private object fields |
+| types | strings | `Drive` / `PowerState` / `Mode` enums |
+| drive list | hard-coded | `/etc/quiescent.conf` |
+
+The shell version is the reference deployment; the **Nim port** ([`nim/README.md`](nim/README.md))
+trades portability for real encapsulation — a `Drive` object whose idle-tracking fields are
+unexported, so the only way to advance state is `poll()`. Build with `cd nim && nimble build`.
+It's validated end-to-end (force-parks a real drive at the configured idle threshold).
+
 ## Repository layout
 
 ```
 quiescent/
 ├── assets/                 logo + diagrams (.dot sources, .svg, .png)
 ├── systemd/                the 4 unit files (oneshots + watcher timer/service)
-├── bin/idle-disk-park.sh   the AV-GP watcher (force hdparm -y after idle)
+├── bin/idle-disk-park.sh   the AV-GP watcher (force hdparm -y after idle) — shell
+├── nim/                    quiescentd — the same watcher as a typed Nim daemon
 ├── config/                 smartd.conf (by-id), nvme udev rule, nic-tune.sh (fixed)
 ├── docs/                   full investigation report + cleanup log + raw evidence
 ├── scripts/render-diagrams.sh   regenerate every .svg/.png from source

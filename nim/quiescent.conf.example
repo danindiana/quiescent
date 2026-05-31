@@ -1,0 +1,18 @@
+# /etc/quiescent.conf — managed drives for quiescentd
+#
+#   interval <seconds>                      poll cadence for watch-mode drives
+#   <by-id path>  watch  <idle-seconds>     force `hdparm -y` after this much idle
+#                                             (timer-ignoring drives, e.g. WD AV-GP)
+#   <by-id path>  timer  <hdparm -S value>  arm the drive's own ATA standby timer once
+#                                             (firmware that self-parks; -S 12 = 1 min)
+#
+# Find your by-id names with:  ls -l /dev/disk/by-id/ | grep -E 'ata-|nvme-'
+# Pick the mode by probing: `hdparm -S 12 <dev>` then wait & `hdparm -C <dev>`;
+# if it won't time out, `hdparm -y <dev>` — obeys -y => use 'watch'.
+
+interval 60
+
+# worlock example (replace serials with your own):
+/dev/disk/by-id/ata-WDC_WD10EURX-63UY4Y0_WD-WCC4J2CHPRRU     watch  300
+/dev/disk/by-id/ata-WDC_WD4005FZBX-00K5WB0_VBGZSTNF          timer  12
+/dev/disk/by-id/ata-Hitachi_HUA723020ALA640_MK0171YFJHSSDA  timer  12

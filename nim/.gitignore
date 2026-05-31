@@ -1,0 +1,5 @@
+# Nim build artifacts
+/quiescentd
+/src/quiescentd
+nimcache/
+*.o

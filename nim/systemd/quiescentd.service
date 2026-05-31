@@ -1,0 +1,16 @@
+[Unit]
+Description=quiescent — idle-disk spin-down daemon (Nim)
+Documentation=https://github.com/danindiana/quiescent
+After=local-fs.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/quiescentd /etc/quiescent.conf
+Restart=on-failure
+RestartSec=10
+# hardening — it only needs to run hdparm and read /sys
+ProtectHome=yes
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

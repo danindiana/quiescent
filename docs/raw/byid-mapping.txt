@@ -1,0 +1,8 @@
+# by-id -> /dev/sdX mapping (2026-05-31 13:48:18 CDT)
+lrwxrwxrwx 1 root root  9 May 31 13:38 ata-Hitachi_HUA723020ALA640_MK0171YFJHSSDA -> ../../sde
+lrwxrwxrwx 1 root root  9 May 31 13:38 ata-Samsung_SSD_870_EVO_500GB_S6PXNS0YC00884H -> ../../sda
+lrwxrwxrwx 1 root root  9 May 31 13:38 ata-ST12000VN0008-2PH103_ZL2PLEG9 -> ../../sdf
+lrwxrwxrwx 1 root root  9 May 31 13:38 ata-ST12000VN0008-2PH103_ZLW2HXSN -> ../../sdd
+lrwxrwxrwx 1 root root  9 May 31 13:38 ata-WDC_WD10EURX-63UY4Y0_WD-WCC4J2CHPRRU -> ../../sdc
+lrwxrwxrwx 1 root root  9 May 31 13:38 ata-WDC_WD4005FZBX-00K5WB0_VBGZSTNF -> ../../sdg
+lrwxrwxrwx 1 root root  9 May 31 13:38 ata-WDC_WDS100T2B0A-00SM50_21313F803818 -> ../../sdb

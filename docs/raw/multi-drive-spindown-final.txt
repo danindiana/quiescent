@@ -1,0 +1,46 @@
+# Multi-drive spindown — final state (2026-05-31 16:53 CDT)
+
+## Goal: fewer spinning platters by default -> less cage heat.
+## Idle drives parked; active RAID0 IronWolfs (sdd/sdf) left spinning.
+
+## Per-drive mechanism + verification:
+  sdg WD Black 4TB (unmounted backup) : wd-backup-spindown.service, hdparm -S 12 (1min) -> PARKS
+  sde Hitachi 2TB  (/mnt/hitachi_2tb)  : idle-hdd-spindown.service,  hdparm -S 12 (1min) -> PARKS
+  sdc WD10EURX 1TB (/mnt/sda1, AV-GP)  : idle-disk-park.timer+script, forced hdparm -y after 5min idle -> PARKS
+      (AV-GP firmware ignores the -S idle timer AND does not support APM;
+       it does obey a forced standby command, so a software watcher is used.)
+
+## sdc watcher end-to-end verification (woke 16:47:28, idle 5min, watcher fired):
+  16:47:28 woke sdc
+  16:48:28 .. 16:52:28  active/idle
+  16:53:28  standby   <<< watcher force-parked
+
+## Current power state (non-intrusive hdparm -C):
+  sdc: standby
+  sde: standby
+  sdg: standby
+
+## Units:
+  wd-backup-spindown.service     enabled=enabled active=active
+  idle-hdd-spindown.service      enabled=enabled active=active
+  idle-disk-park.timer           enabled=enabled active=active
+
+## TEMPERATURE VALIDATION (checked 2026-05-31 ~16:58)
+## Method: parked-state read requires a brief spin-up (SMART temp needs the drive
+## awake); drives auto re-park after via their timers/watcher. Temps read right
+## after wake reflect the cooled parked state.
+##
+##  Drive            Role                  Spinning(13:48)  Parked(now)   delta
+##  sdg WD Black      backup (parked)         53C             33C        -20C
+##  sdc WD10EURX      /mnt/sda1 (parked)      42C             33C         -9C
+##  sde Hitachi       /mnt/hitachi_2tb        40C             34C         -6C
+##  sdd IronWolf      RAID0 (still spinning)  46C             43C         -3C
+##  sdf IronWolf      RAID0 (still spinning)  49C             42C         -7C
+##
+## - Parked idle drives settle at ~33-34C (motor off, cage-ambient). The 53C
+##   smartd alarm that triggered this investigation is gone.
+## - The always-on RAID0 IronWolfs (sdd/sdf) also dropped -3..-7C WITHOUT being
+##   parked: fewer spinning neighbors = less shared-cage heat (validates the
+##   "fewer spinning platters -> less heat overall" rationale). Killing the
+##   runaway grep that was hammering sde also reduced overall load/heat.
+## - Lower drive cage: ~40-53C spread BEFORE -> ~33-43C AFTER.

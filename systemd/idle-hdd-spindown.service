@@ -1,0 +1,18 @@
+[Unit]
+Description=Idle spin-down for archive HDD (sde=/mnt/hitachi_2tb); sdc moved to idle-disk-park (timer-ignoring AV-GP)
+# Companion to wd-backup-spindown.service (which handles the unmounted WD Black).
+# These are idle, mounted archive drives; hdparm.conf already intended sdc spindown
+# but the udev->pm-utils apply path is broken under systemd-udevd (pm-utils 'un'),
+# so it never armed at boot. This arms it deterministically, pinned by-id.
+# Timer = -S 12 (1 min idle — these drives ignore longer values, same as the WD Black). Per-drive: drops to -S 12 (1 min) if firmware ignores
+# longer values (as the WD Black does) — see raw/idle-hdd-spindown-verify.txt.
+After=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Hitachi HUA723020ALA640 2TB (/mnt/hitachi_2tb).
+ExecStart=/bin/sh -c 'D=/dev/disk/by-id/ata-Hitachi_HUA723020ALA640_MK0171YFJHSSDA; if [ -e "$D" ]; then /sbin/hdparm -S 12 "$D"; else echo "Hitachi-2TB absent; skipping"; fi'
+
+[Install]
+WantedBy=multi-user.target

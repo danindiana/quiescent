@@ -1,0 +1,15 @@
+# NVMe optimization rules - corrected for device capabilities
+# Updated 2026-05-31: nvme0n1 nr_requests 1022 -> 255. With scheduler=none the queue depth
+# is hardware-capped at the device's hw queue depth (255 here, same as nvme1n1); any larger
+# value is rejected with EINVAL and logged at every boot. Confirmed: writing 256 fails.
+
+# nvme1n1: Max supported nr_requests = 255
+ACTION=="add|change", KERNEL=="nvme1n1", ATTR{queue/nr_requests}="255"
+ACTION=="add|change", KERNEL=="nvme1n1", ATTR{queue/read_ahead_kb}="256"
+
+# nvme0n1: Max supported nr_requests = 255 (hw queue depth under scheduler=none)
+ACTION=="add|change", KERNEL=="nvme0n1", ATTR{queue/nr_requests}="255"
+ACTION=="add|change", KERNEL=="nvme0n1", ATTR{queue/read_ahead_kb}="256"
+
+# Set scheduler to none for all NVMe devices (optimal for NVMe)
+ACTION=="add|change", KERNEL=="nvme[0-9]n[0-9]", ATTR{queue/scheduler}="none"

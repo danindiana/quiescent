@@ -1,0 +1,7 @@
+[Unit]
+Description=Force-park timer-ignoring HDDs after idle (WD AV-GP / WD10EURX)
+Documentation=https://github.com/danindiana/quiescent
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/idle-disk-park.sh

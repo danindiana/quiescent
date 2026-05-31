@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" width="1200" height="360" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="neon" x1="0" y1="0" x2="1" y2="0.4">
+      <stop offset="0" stop-color="#00e5ff"/>
+      <stop offset="0.55" stop-color="#7bd6ff"/>
+      <stop offset="1" stop-color="#ff3ec9"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softglow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="2.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- backdrop -->
+  <rect width="1200" height="360" rx="18" fill="#0b0e14"/>
+  <rect x="3" y="3" width="1194" height="354" rx="16" fill="none" stroke="#16202c" stroke-width="2"/>
+
+  <!-- emblem: a disk platter, spinning down to sleep -->
+  <g transform="translate(185,180)" filter="url(#glow)">
+    <!-- platter rings -->
+    <circle r="112" fill="none" stroke="#00e5ff" stroke-width="3" opacity="0.85"/>
+    <circle r="88"  fill="none" stroke="#ff3ec9" stroke-width="2.5" opacity="0.8"/>
+    <circle r="64"  fill="none" stroke="#00e5ff" stroke-width="2" opacity="0.6"/>
+    <circle r="40"  fill="none" stroke="#b56bff" stroke-width="2" opacity="0.7"/>
+    <!-- spindle -->
+    <circle r="11" fill="#00e5ff"/>
+    <circle r="11" fill="none" stroke="#ff3ec9" stroke-width="2"/>
+    <!-- read/write arm, parked -->
+    <line x1="86" y1="-86" x2="20" y2="-20" stroke="#39ff14" stroke-width="6" stroke-linecap="round"/>
+    <circle cx="86" cy="-86" r="7" fill="#39ff14"/>
+    <!-- spin-down arc + arrowhead (clockwise, decaying) -->
+    <path d="M 0 -128 A 128 128 0 0 1 96 -85" fill="none" stroke="#39ff14" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
+    <path d="M 96 -85 l 12 -2 l -6 13 z" fill="#39ff14"/>
+    <!-- sleep glyph -->
+    <g fill="#39ff14" filter="url(#softglow)" font-weight="bold">
+      <text x="120" y="-86" font-size="30">z</text>
+      <text x="146" y="-110" font-size="40">Z</text>
+      <text x="178" y="-140" font-size="52">Z</text>
+    </g>
+  </g>
+
+  <!-- wordmark -->
+  <g filter="url(#softglow)">
+    <text x="360" y="172" font-size="104" font-weight="700" letter-spacing="2" fill="url(#neon)">quiescent</text>
+  </g>
+  <text x="364" y="226" font-size="29" font-weight="500" letter-spacing="6" fill="#7fa8c9">IDLE&#160;DISKS&#160;AT&#160;REST</text>
+  <text x="366" y="270" font-size="20" font-weight="400" letter-spacing="0.5" fill="#5f7689">park spinning drives by-id &#183; cut drive-cage heat &#183; systemd + hdparm</text>
+
+  <!-- neon underline -->
+  <rect x="364" y="190" width="486" height="3" rx="1.5" fill="url(#neon)" filter="url(#softglow)"/>
+</svg>

@@ -1,0 +1,26 @@
+digraph what_we_did {
+  rankdir=TB;
+  graph [bgcolor="#0b0e14", fontname="Helvetica", fontcolor="#e6f7ff", fontsize=20,
+         label="what we did  —  one root cause, six fixes, one cooling win", labelloc=t, pad=0.4, ranksep=0.55];
+  node  [shape=box, style="filled,rounded", fontname="Helvetica", fontcolor="#e6f7ff",
+         fillcolor="#11161f", penwidth=2, fontsize=11];
+  edge  [color="#39ff14", penwidth=1.7, arrowsize=0.85];
+
+  a [label="boot-log audit\n0 failed units · 3 reboots were a BIOS reconfig", color="#00e5ff"];
+  b [label="found: stale  ethtool@enp8s0\n→ ~90 s boot timeout (NIC renamed enp8s0→enp9s0)", color="#ff7a18", fontcolor="#ffb27a"];
+  c [label="★  ROOT CAUSE\npositional names DRIFT after the\nRTX 5080 / 3080 PCIe renumbering\n(/dev/sdX  &  enpXsY)",
+     shape=octagon, color="#ff3ec9", fontcolor="#ff9fe4", penwidth=3, fillcolor="#1a0a16"];
+
+  d [label="smartd.conf  →  by-id\n(it had been monitoring the WRONG drives)", color="#00e5ff"];
+  e [label="nvme0n1 udev nr_requests\nEINVAL every boot  →  1022→255", color="#00e5ff"];
+  f [label="stale-ref cleanup\nfirewall · netplan · sysctl · NM dispatcher\n(all still naming dead enp7s0)", color="#00e5ff"];
+  g [label="igb ring-buffer awk bug\nrmax read past 'Pre-set maximums'\n→ ring now 4096", color="#00e5ff"];
+  h [label="spin-down saga\nWD Black: firmware ignores long -S timers\nHitachi: -S 12 works\nWD10EURX (AV-GP): needs a forced -y watcher",
+     color="#ffd300", fontcolor="#ffe98a"];
+  i [label="✓  THERMAL VALIDATION\nWD Black 53 → 33 °C · cage 40–53 → 33–43 °C\n(active drives cooled too)",
+     color="#39ff14", fontcolor="#8dff7a", penwidth=3];
+
+  a -> b -> c;
+  c -> d -> e -> f -> g -> h -> i;
+  c -> h [style=dotted, color="#7fa8c9", fontcolor="#7fa8c9", constraint=false, label=" same\n root cause"];
+}

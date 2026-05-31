@@ -1,0 +1,33 @@
+digraph architecture {
+  rankdir=LR;
+  graph [bgcolor="#0b0e14", fontname="Helvetica", fontcolor="#e6f7ff", fontsize=20,
+         label="quiescent  —  spin-down architecture", labelloc=t, pad=0.4, nodesep=0.45, ranksep=0.9];
+  node  [shape=box, style="filled,rounded", fontname="Helvetica", fontcolor="#e6f7ff",
+         fillcolor="#11161f", penwidth=2, fontsize=11];
+  edge  [color="#39ff14", penwidth=1.6, fontcolor="#9fd8ff", fontsize=9, arrowsize=0.8];
+
+  boot   [label="systemd\nmulti-user.target", shape=hexagon, color="#b56bff", fontcolor="#e0c8ff"];
+  decide [label="does the drive's firmware\nhonor the ATA -S idle timer?",
+          shape=diamond, color="#ffd300", fontcolor="#ffe98a", fillcolor="#1a160a", penwidth=2.5];
+
+  one1 [label="wd-backup-spindown.service\nhdparm -S 12  (1 min)\nby-id → WD Black  (sdg)", color="#00e5ff"];
+  one2 [label="idle-hdd-spindown.service\nhdparm -S 12  (1 min)\nby-id → Hitachi  (sde)", color="#00e5ff"];
+
+  timer  [label="idle-disk-park.timer\nOnUnitActiveSec = 1 min", color="#ff3ec9", fontcolor="#ff9fe4"];
+  svc    [label="idle-disk-park.service\n(oneshot)", color="#ff3ec9", fontcolor="#ff9fe4"];
+  script [label="idle-disk-park.sh\nno block I/O for ≥ 5 min ?\n→ hdparm -y  (force standby)", shape=note, color="#ff3ec9", fontcolor="#ff9fe4"];
+  sdc    [label="WD10EURX  (sdc, AV-GP)\nignores -S · no APM\nbut OBEYS forced -y", color="#ffd300", fontcolor="#ffe98a"];
+
+  parked [label="DRIVE PARKED\n(standby — cool & quiet)", color="#39ff14", fontcolor="#8dff7a", penwidth=3];
+
+  boot   -> decide;
+  decide -> one1 [label=" yes — short -S"];
+  decide -> one2 [label=" yes"];
+  decide -> timer [label=" no (AV-GP) →\n software watcher", color="#ff3ec9", fontcolor="#ff9fe4"];
+  timer  -> svc -> script -> sdc [color="#ff3ec9"];
+  one1 -> parked; one2 -> parked; sdc -> parked;
+
+  byid [shape=plaintext, fillcolor="none", fontcolor="#7fa8c9",
+        label="every device pinned by /dev/disk/by-id/*  —  survives SATA letter drift"];
+  { rank=sink; byid; }
+}

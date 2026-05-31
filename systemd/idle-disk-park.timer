@@ -1,0 +1,10 @@
+[Unit]
+Description=Periodic idle check to force-park timer-ignoring HDDs (sdc / WD10EURX)
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+AccuracySec=15s
+
+[Install]
+WantedBy=timers.target

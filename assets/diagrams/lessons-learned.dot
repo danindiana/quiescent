@@ -1,0 +1,19 @@
+digraph lessons {
+  layout=dot; rankdir=LR;
+  graph [bgcolor="#0b0e14", fontname="Helvetica", fontcolor="#e6f7ff", fontsize=20,
+         label="lessons learned", labelloc=t, pad=0.4, ranksep=1.1, nodesep=0.35];
+  node  [shape=box, style="filled,rounded", fontname="Helvetica", fontcolor="#e6f7ff",
+         fillcolor="#11161f", penwidth=2, fontsize=11];
+  edge  [color="#39ff14", penwidth=1.4, arrowsize=0.7];
+
+  core [label="quiescent\nlessons", shape=doublecircle, color="#ff3ec9", fontcolor="#ff9fe4", fillcolor="#1a0a16", penwidth=2.5];
+
+  l1 [label="Pin to IDENTITY, not POSITION\n/dev/sdX and enpXsY drift after any\nhardware change → use by-id / UUID / MAC", color="#00e5ff"];
+  l2 [label="pm-utils is dead\nhdparm.conf -S/-B silently never applies\nunder systemd-udevd → own it with a unit", color="#00e5ff"];
+  l3 [label="Drive firmware varies wildly\nWD Black ignores long -S timers ·\nWD AV-GP ignores -S entirely (force -y)", color="#ffd300", fontcolor="#ffe98a"];
+  l4 [label="Measure, don't assume\nAPM 254 was a red herring · beware the\nobserver effect (fuser / -C reset idle timers)", color="#b56bff", fontcolor="#e0c8ff"];
+  l5 [label="Mind your own processes\na runaway 75-min grep kept a disk\nspinning (and hot) for nothing", color="#ff7a18", fontcolor="#ffb27a"];
+  l6 [label="Fewer spinning platters\ncools the NEIGHBORS too\n(shared drive-cage heat)", color="#39ff14", fontcolor="#8dff7a"];
+
+  core -> l1; core -> l2; core -> l3; core -> l4; core -> l5; core -> l6;
+}

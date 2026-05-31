@@ -1,0 +1,23 @@
+[Unit]
+Description=Spin-down timer for WD Black pdf_backup drive (hdparm -S 12 = 1 min idle)
+# Why this exists: hdparm.conf sets spindown_time for this drive, but the
+# udev RUN+=/lib/udev/hdparm -> pm-utils(95hdparm-apm) path is unreliable under
+# systemd-udevd (pm-utils is deprecated / 'un' state), so the standby timer was
+# never armed at boot and the drive spun 24/7 at ~53C while unmounted/idle.
+# This applies it deterministically. Pinned by-id so it survives SATA letter drift.
+#
+# Timer = -S 12 (12 x 5s = 60s = 1 min idle). NOTE: this WD4005FZBX firmware honors
+# SHORT standby values but ignores longer ones — verified 2026-05-31 that -S 12
+# parks reliably and stays parked, while -S 60 (5 min) and -S 120 (10 min) never
+# park despite nothing accessing the drive. 1 min is the proven-working value.
+# Investigated: ~/Documents/claude_creations/2026-05-31_134707_health-followups-investigation/
+After=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Guard: skip cleanly if the drive is absent; never fail the boot transaction.
+ExecStart=/bin/sh -c 'DEV=/dev/disk/by-id/ata-WDC_WD4005FZBX-00K5WB0_VBGZSTNF; if [ -e "$DEV" ]; then /sbin/hdparm -S 12 "$DEV"; else echo "WD Black (VBGZSTNF) not present; skipping spindown"; fi'
+
+[Install]
+WantedBy=multi-user.target

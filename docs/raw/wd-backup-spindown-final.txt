@@ -1,0 +1,21 @@
+# WD Black spindown — final settled config (2026-05-31 16:07 CDT)
+
+## Outcome: wd-backup-spindown.service uses hdparm -S 12 (1 min idle).
+
+## Firmware quirk found: this WD4005FZBX honors SHORT standby values but
+## ignores longer ones. Empirical results (nothing was accessing the drive —
+## confirmed flat block I/O + 5.5 min parked during the -S 12 test):
+##   -S 12  (1 min)  -> PARKS at 60s, stays parked   [chosen]
+##   -S 60  (5 min)  -> never parks (~8.5 min observed)
+##   -S 120 (10 min) -> never parks (~13 min observed)
+
+## Final verification (post -S 12, armed 16:04:41):
+  16:06:04 (+75s)  state=standby
+  16:06:34 (+105s) state=standby
+  16:07:04 (+135s) state=standby
+  -> parks ~60s after idle and stays parked.
+
+## Unit ExecStart:
+ExecStart=/bin/sh -c 'DEV=/dev/disk/by-id/ata-WDC_WD4005FZBX-00K5WB0_VBGZSTNF; if [ -e "$DEV" ]; then /sbin/hdparm -S 12 "$DEV"; else echo "WD Black (VBGZSTNF) not present; skipping spindown"; fi'
+## is-enabled:
+enabled

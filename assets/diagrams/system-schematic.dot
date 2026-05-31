@@ -1,0 +1,40 @@
+digraph system_schematic {
+  rankdir=TB;
+  graph [bgcolor="#0b0e14", fontname="Helvetica", fontcolor="#e6f7ff", fontsize=20,
+         label="worlock  —  SATA storage map & spin-down policy", labelloc=t, pad=0.4, nodesep=0.4, ranksep=0.7];
+  node  [shape=box, style="filled,rounded", fontname="Helvetica", fontcolor="#e6f7ff",
+         fillcolor="#11161f", penwidth=2, fontsize=11];
+  edge  [color="#39ff14", penwidth=1.6, arrowsize=0.8];
+
+  hba [label="AMD SATA controller\n/dev/sd?  —  letters DRIFT after PCIe renumber",
+       shape=cylinder, color="#b56bff", fontcolor="#e0c8ff"];
+
+  subgraph cluster_ssd {
+    label="SSD — no platters, nothing to park"; color="#3a4a5a"; fontcolor="#7fa8c9"; style="rounded";
+    sda [label="sda · Samsung 870 EVO 500G\n/mnt/samsung_ssd", color="#5fd0ff"];
+    sdb [label="sdb · WD Blue 1TB SSD\n(unmounted)", color="#5fd0ff"];
+  }
+
+  subgraph cluster_parked {
+    label="idle HDD — PARKED by quiescent"; color="#39ff14"; fontcolor="#8dff7a"; style="rounded";
+    sdg [label="sdg · WD Black 4TB\nbackup (unmounted)\n-S 12 timer   ·   53 → 33 °C", color="#39ff14"];
+    sde [label="sde · Hitachi 2TB\n/mnt/hitachi_2tb\n-S 12 timer   ·   40 → 34 °C", color="#39ff14"];
+    sdc [label="sdc · WD10EURX 1TB  (AV-GP)\n/mnt/sda1\nwatcher: forced hdparm -y   ·   42 → 33 °C",
+         color="#ffd300", fontcolor="#ffe98a"];
+  }
+
+  subgraph cluster_raid {
+    label="RAID0 md0 — ALWAYS ON (needs airflow)"; color="#ff7a18"; fontcolor="#ffb27a"; style="rounded";
+    sdd [label="sdd · IronWolf 12TB\nmd0 + /mnt/sdf1   ·   46 → 43 °C", color="#ff7a18"];
+    sdf [label="sdf · IronWolf 12TB\nmd0   ·   49 → 42 °C", color="#ff7a18"];
+  }
+
+  md0 [label="md0  (RAID0, /mnt/raid0)\nmonolithic_pdf archive", shape=box3d, color="#ff3ec9", fontcolor="#ff9fe4"];
+
+  hba -> {sda sdb sdc sdd sde sdf sdg};
+  sdd -> md0 [color="#ff3ec9", style=dashed, fontcolor="#ff9fe4", label=" sdd2"];
+  sdf -> md0 [color="#ff3ec9", style=dashed, fontcolor="#ff9fe4", label=" sdf2"];
+
+  legend [shape=plaintext, fillcolor="none", fontcolor="#7fa8c9",
+    label=<<font color="#39ff14">green</font> = parked via ATA -S timer&#160;&#160;<font color="#ffd300">amber</font> = parked via software watcher&#160;&#160;<font color="#ff7a18">orange</font> = active RAID0>];
+}

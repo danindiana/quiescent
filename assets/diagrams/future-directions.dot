@@ -1,0 +1,19 @@
+digraph future {
+  layout=dot; rankdir=LR;
+  graph [bgcolor="#0b0e14", fontname="Helvetica", fontcolor="#e6f7ff", fontsize=20,
+         label="future directions", labelloc=t, pad=0.4, ranksep=1.1, nodesep=0.35];
+  node  [shape=box, style="filled,rounded", fontname="Helvetica", fontcolor="#e6f7ff",
+         fillcolor="#11161f", penwidth=2, fontsize=11];
+  edge  [color="#39ff14", penwidth=1.4, arrowsize=0.7];
+
+  now [label="NOW\n3 idle HDDs parked\ncage 33–43 °C", shape=hexagon, color="#39ff14", fontcolor="#8dff7a", penwidth=2.5];
+
+  f1 [label="HARDWARE: lower-cage fan\nfor the always-on RAID0 IronWolfs —\nthe only open thermal item", color="#ff7a18", fontcolor="#ffb27a"];
+  f2 [label="Generalize the watcher\nconfig-file drive list + per-drive idle\n(any timer-ignoring drive)", color="#00e5ff"];
+  f3 [label="Park-ratio + temp telemetry\nexport metrics · alert on regressions", color="#b56bff", fontcolor="#e0c8ff"];
+  f4 [label="smartd -W threshold tuning\nonce airflow is addressed", color="#00e5ff"];
+  f5 [label="Package as an installer\nby-id discovery wizard + drop-in units", color="#ff3ec9", fontcolor="#ff9fe4"];
+  f6 [label="Evaluate RAID0 spin-down\n(risky: md polling, spin-up latency)", color="#ffd300", fontcolor="#ffe98a"];
+
+  now -> f1; now -> f2; now -> f3; now -> f4; now -> f5; now -> f6;
+}

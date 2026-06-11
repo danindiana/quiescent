@@ -1,0 +1,14 @@
+# Nim build artifacts (mirrors nim/.gitignore so nothing slips in from the repo root)
+nimcache/
+*.o
+nim/quiescentd
+nim/quiescentctl
+nim/quiescent_wear
+nim/quiescent_mountd
+nim/spinup-probe
+nim/quiescent-metrics
+nim/mount-audit
+
+# Editor / OS cruft
+*~
+.DS_Store

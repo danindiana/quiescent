@@ -147,6 +147,12 @@ trades portability for real encapsulation — a `Drive` object whose idle-tracki
 unexported, so the only way to advance state is `poll()`. Build with `cd nim && nimble build`.
 It's validated end-to-end (force-parks a real drive at the configured idle threshold).
 
+`nim/` has since grown into a small **suite** sharing the same `Drive` / `PowerState` / `byId`
+model: the `quiescentd` daemon, the `quiescentctl` control CLI, the `quiescent_wear` SMART
+fatigue analyzer, the `quiescent_mountd` remount-on-demand wrapper, and a read-only investigative
+trio — `spinup-probe` (shutdown spin-up detector), `quiescent-metrics` (Prometheus textfile), and
+`mount-audit` (read-only-candidate finder). See [`nim/README.md`](nim/README.md) for the full tour.
+
 ## Repository layout
 
 ```
@@ -154,7 +160,7 @@ quiescent/
 ├── assets/                 logo + diagrams (.dot sources, .svg, .png)
 ├── systemd/                the 4 unit files (oneshots + watcher timer/service)
 ├── bin/idle-disk-park.sh   the AV-GP watcher (force hdparm -y after idle) — shell
-├── nim/                    quiescentd — the same watcher as a typed Nim daemon
+├── nim/                    typed Nim suite — quiescentd daemon + ctl/wear/mountd + read-only trio
 ├── config/                 smartd.conf (by-id), nvme udev rule, nic-tune.sh (fixed)
 ├── docs/                   full investigation report + cleanup log + raw evidence
 ├── scripts/render-diagrams.sh   regenerate every .svg/.png from source

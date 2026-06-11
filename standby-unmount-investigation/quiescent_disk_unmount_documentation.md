@@ -75,4 +75,7 @@ The following changes were persisted in `/etc/fstab`:
    sudo systemctl daemon-reload
    ```
 
+### Live Synchronization Note
+No system reboot is required to activate these changes. The live kernel mount options were dynamically updated to `ro,noatime` via the remount commands, and systemd's mount tracking units (`mnt-sda1.mount` and `mnt-hitachi_2tb.mount`) were synchronized with `/etc/fstab` via the `daemon-reload` command, ensuring perfect alignment between the running state and fstab.
+
 A read-only unmount does not write to the superblock metadata. Consequently, both `/dev/sdc` and `/dev/sde` will remain in their standby/quiescent state during future shutdowns, preventing mechanical wear and eliminating up to 15+ seconds of shutdown latency.

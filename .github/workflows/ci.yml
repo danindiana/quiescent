@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    paths:
+      - 'nim/**'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    paths:
+      - 'nim/**'
+      - '.github/workflows/ci.yml'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nim
+        uses: jiro4989/setup-nim-action@v2
+        with:
+          nim-version: '2.0.x'
+
+      # Build needs no root (hdparm is runtime-only) and the tests are pure
+      # parsers (journald / /proc/mounts / config), so this is headless-safe.
+      - name: Build all binaries
+        working-directory: nim
+        run: nimble build -y
+
+      - name: Run unit tests
+        working-directory: nim
+        run: nimble test -y

@@ -20,6 +20,7 @@ jobs:
         uses: jiro4989/setup-nim-action@v2
         with:
           nim-version: '2.0.x'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       # Build needs no root (hdparm is runtime-only) and the tests are pure
       # parsers (journald / /proc/mounts / config), so this is headless-safe.

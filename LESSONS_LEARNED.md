@@ -75,3 +75,31 @@ The payoff wasn't limited to the parked drives. The always-on RAID0 IronWolfs dr
 **−3…−7 °C without being parked**, purely because their idle neighbours stopped dumping heat
 into the shared cage. In a dense, airflow-constrained enclosure, every platter you can stop is
 heat you remove from *every* drive around it.
+
+## 7. A parked drive gets spun back up at shutdown — and that's correct
+
+A follow-up investigation (2026-06-11) asked the obvious question: if a drive is parked,
+doesn't *shutting the machine down* needlessly spin it back up? It does — for any disk holding a
+**mounted read-write filesystem** — and that spin-up is **necessary, not a bug**.
+
+- **The actor is the kernel/systemd unmount path, not `udisks2`.** `udisksd` only *monitors*
+  devices. Cleanly unmounting a mounted RW ext4 filesystem flushes the journal and clears the
+  dirty superblock flag — a **write** — so a parked disk must spin up to service it. Skipping the
+  write would leave the filesystem flagged dirty and force an `fsck` on the next boot. Strictly
+  worse than a ~6 s spin-up.
+- **Only *mounted* RW disks are affected.** An *unmounted* parked drive (on worlock: `sdg`, the
+  WD Black backup) has nothing to flush and is **never woken** at shutdown. The quiescent design
+  already gets this right by leaving the backup unmounted.
+- **Unmount duration is a free spin-up probe.** In `journalctl`, the gap between
+  `Unmounting /mnt/X...` and `Unmounted /mnt/X` is a reliable standby→active proxy: ~8–11 s means
+  the drive was parked and spun up; ~0 s means it was already awake from recent use. So the cost
+  is *at most* one spin-up per mounted parked disk per shutdown, and often zero.
+- **The wear is negligible.** One extra `Start_Stop_Count` per shutdown (~1–2×/day) is dwarfed by
+  the daily parking cycles the watcher/timer themselves drive (the Hitachi was already at
+  ~18 k start/stops). Not a concern.
+- **If you truly want zero shutdown spin-up**, mount the archive read-only — a clean `ro` ext4
+  unmount writes nothing. Only worth it for a *pure read* archive, since writes then need
+  `mount -o remount,rw` first.
+
+*Full write-up + diagrams: `worlock-session-archive` →
+`2026-06-11_072443_destructive-transaction-investigation/DISK_SHUTDOWN_SPINUP.md`.*

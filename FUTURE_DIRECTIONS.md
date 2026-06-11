@@ -46,3 +46,13 @@ a new machine doesn't require hand-editing serials into unit files.
 Spinning down RAID members is risky — `md` can issue periodic I/O, and spinning a striped array
 back up adds latency to the first access — but for a *cold* archive array it might be viable with
 a long idle threshold and the forced-`-y` watcher. Worth a controlled experiment, not a default.
+
+## 7. Zero-spin-up shutdown for pure-read archives
+
+A parked drive with a *mounted read-write* filesystem is spun back up at shutdown to flush its
+ext4 journal and clear the dirty flag (see Lessons Learned §7) — necessary, but avoidable for a
+drive that's never written. If a member of the park set becomes a **pure read archive**, mounting
+it **read-only** eliminates the shutdown spin-up entirely (a clean `ro` unmount writes nothing).
+Candidate mechanics: `ro` in `fstab` with a documented `mount -o remount,rw` escape hatch for the
+rare ingest. Pairs naturally with the park-ratio telemetry (§3) — fold "woke at shutdown?" into
+the same metric by parsing unmount durations from `journalctl`.

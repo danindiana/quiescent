@@ -1,5 +1,8 @@
 # Nim build artifacts
 /quiescentd
+/quiescentctl
+/quiescent_wear
+/quiescent_mountd
 /spinup-probe
 /quiescent-metrics
 /mount-audit

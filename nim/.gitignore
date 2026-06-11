@@ -1,5 +1,8 @@
 # Nim build artifacts
 /quiescentd
+/spinup-probe
+/quiescent-metrics
+/mount-audit
 /src/quiescentd
 nimcache/
 *.o

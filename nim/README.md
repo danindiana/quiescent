@@ -16,7 +16,7 @@ The Nim implementation offers type safety, compile-time checks, and cleaner modu
 
 ## Architecture Overview
 
-The Nim suite divides operations into a background daemon (`quiescentd`), a command-line controller (`quiescentctl`), a non-intrusive SMART diagnostics wear analyzer (`quiescent_wear`), and an automated remount-on-demand wrapper (`quiescent_mountd`).
+The Nim suite divides operations into a background daemon (`quiescentd`), a command-line controller (`quiescentctl`), a non-intrusive SMART diagnostics wear analyzer (`quiescent_wear`), and an automated remount-on-demand wrapper (`quiescent_mountd`). A trio of read-only investigative CLIs (`spinup-probe`, `quiescent-metrics`, `mount-audit`) round out the suite.
 
 ![Nim Quiescent Architecture Map](assets/nim_quiescent_architecture.png)
 *(Vector Graphic: [assets/nim_quiescent_architecture.svg](assets/nim_quiescent_architecture.svg))*
@@ -59,6 +59,30 @@ The Nim suite divides operations into a background daemon (`quiescentd`), a comm
   quiescent_mountd listen
   ```
 
+### 🔎 `spinup-probe` · `quiescent-metrics` · `mount-audit` (Shutdown Spin-Up Trio)
+Three read-only CLIs sharing the same `Drive` / `PowerState` / `byId` model, born from the
+2026-06-11 shutdown spin-up investigation (see [`../LESSONS_LEARNED.md`](../LESSONS_LEARNED.md)
+§7 and [`../FUTURE_DIRECTIONS.md`](../FUTURE_DIRECTIONS.md) §3/§7).
+
+| Tool | What it answers | Root? |
+|------|-----------------|-------|
+| `spinup-probe` | Which mounts were *spun up* at recent shutdowns? (unmount duration = standby→active proxy) | no |
+| `quiescent-metrics` | Power state + last-shutdown spin-up as Prometheus textfile metrics | only if `hdparm` needs it |
+| `mount-audit` | Which managed drives are mounted **rw** and could go read-only for a zero-spin-up shutdown? | no |
+
+```bash
+./spinup-probe --boots 3                 # per-boot table; --prefix /mnt/ (default), --all
+./mount-audit /etc/quiescent.conf        # drive | dev | mountpoint | ro/rw | recommendation
+./quiescent-metrics /etc/quiescent.conf > /var/lib/node_exporter/textfile/quiescent.prom
+```
+
+`spinup-probe` and `mount-audit` are read-only and need no root (journal access needs the
+`systemd-journal` group; `/proc/mounts` is world-readable). `quiescent-metrics` reads power
+state via the non-intrusive `hdparm -C` (never wakes a parked drive) and restricts its
+spin-up series to mounts backed by a managed drive so the textfile stays low-cardinality.
+Both new parsers — `quiescent/journal.nim` (unmount durations) and `quiescent/mountinfo.nim`
+(`/proc/mounts`) — are pure (string in → value out) and unit-tested.
+
 ---
 
 ## 2. Configuration (`/etc/quiescent.conf`)
@@ -88,7 +112,9 @@ Requires the Nim compiler (version >= 2.0.0) and `nimble`:
 cd nim
 nimble build
 ```
-This compiles four standalone binaries in the `nim/` directory: `quiescentd`, `quiescentctl`, `quiescent_wear`, and `quiescent_mountd`.
+This compiles the standalone binaries in the `nim/` directory: `quiescentd`, `quiescentctl`,
+`quiescent_wear`, `quiescent_mountd`, plus the read-only trio `spinup-probe`,
+`quiescent-metrics`, and `mount-audit`.
 
 ### Install
 Installs the daemon, command utilities, and registers the systemd service:
@@ -103,6 +129,11 @@ sudo systemctl enable --now quiescentd.service
 
 # Verify daemon logs
 journalctl -u quiescentd.service -f
+```
+
+### Tests
+```bash
+nimble test        # pure parsers: journal (unmount durations) + mountinfo (/proc/mounts)
 ```
 
 ---

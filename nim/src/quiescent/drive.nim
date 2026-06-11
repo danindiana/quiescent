@@ -40,6 +40,12 @@ proc present*(d: Drive): bool =
   ## Is the drive currently attached?
   symlinkExists(d.byId)
 
+proc kernelName*(d: Drive): string =
+  ## Exported wrapper over `blockDev` — resolve the by-id symlink to its (drift-prone)
+  ## kernel name, e.g. "sdg". Returns "" if the drive is absent. Used by mount-audit
+  ## and quiescent-metrics to correlate a managed drive with its /proc/mounts entries.
+  d.blockDev()
+
 proc powerState*(d: Drive): PowerState =
   ## `hdparm -C` — non-intrusive: does not wake the drive or reset its standby timer.
   let outp = execProcess("hdparm", args = ["-C", d.byId],

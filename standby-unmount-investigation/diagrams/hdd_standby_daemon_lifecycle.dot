@@ -1,0 +1,79 @@
+digraph HDDStandbyLifecycle {
+    bgcolor="#0d0e15"
+    pad="0.5"
+    fontname="Courier New"
+    fontsize=18
+    fontcolor="#ffff00"
+    label="HDD STANDBY & POWER MANAGEMENT LIFECYCLE"
+    labelloc="t"
+
+    node [
+        fontname="Courier New"
+        fontsize=10
+        fontcolor="#ffffff"
+        style="filled,solid"
+        fillcolor="#161925"
+        color="#ffff00"
+        penwidth=2
+        shape=box
+    ]
+    edge [
+        fontname="Courier New"
+        fontsize=9
+        fontcolor="#00ffcc"
+        color="#00ffcc"
+        penwidth=1.5
+    ]
+
+    // Subgraph: Standard Spindown (Firmware Honors Spindown)
+    subgraph cluster_standard {
+        label="Path A: Standard Hardware Spindown (Hitachi sde, WD Black sdg)"
+        color="#00ff88"
+        fontcolor="#00ff88"
+        style="solid"
+        
+        systemd_service [label="systemd Service on Boot\n(idle-hdd-spindown.service / wd-backup-spindown.service)", fillcolor="#11241a", color="#00ff88"]
+        hdparm_cmd [label="ExecStart: hdparm -S 12\n(Sets standby timeout to 60s)", fillcolor="#11241a", color="#00ff88"]
+        drive_fw [label="Drive Controller Firmware\n(Monitors idle activity directly)", fillcolor="#11241a", color="#00ff88"]
+        standby_auto [label="Auto Standby Mode\n(Platter spun down after 60s)", fillcolor="#11241a", color="#00ff88"]
+
+        systemd_service -> hdparm_cmd [label="Arm at boot"]
+        hdparm_cmd -> drive_fw [label="Passes ATA APM command"]
+        drive_fw -> standby_auto [label="No host activity"]
+    }
+
+    // Subgraph: Polling Daemon Spindown (WD AV-GP Surveillance sdc ignores ATA timer)
+    subgraph cluster_custom {
+        label="Path B: Custom Software Polling (WD AV-GP sdc)"
+        color="#ff00cc"
+        fontcolor="#ff00cc"
+        style="solid"
+
+        timer [label="idle-disk-park.timer\n(Triggers every 1 minute)", fillcolor="#2b1426", color="#ff00cc"]
+        poll_script [label="idle-disk-park.service\n(Executes /usr/local/sbin/idle-disk-park.sh)", fillcolor="#2b1426", color="#ff00cc"]
+        check_standby [label="Check Current State:\nhdparm -C /dev/sdc", fillcolor="#2b1426", color="#ff00cc"]
+        check_io [label="Read I/O Statistics:\n/sys/block/sdc/stat\n(Reads + Writes completed)", fillcolor="#2b1426", color="#ff00cc"]
+        compare_io [label="Compare Current I/O to\nPrevious Value in /run/idle-disk-park.sdc", fillcolor="#2b1426", color="#ff00cc"]
+        force_standby [label="Force Spindown:\nhdparm -y /dev/sdc\n(Immediate Standby)", fillcolor="#2b1426", color="#ff00cc"]
+
+        timer -> poll_script [label="Trigger interval"]
+        poll_script -> check_standby [label="1. Check state"]
+        check_standby -> check_io [label="If state = 'active/idle'"]
+        check_io -> compare_io [label="2. Compare reads/writes"]
+        compare_io -> force_standby [label="If I/O unchanged\nfor >= 300s (5 min)"]
+        compare_io -> poll_script [label="If I/O changed:\nupdate /run state & exit", color="#ff5252"]
+    }
+
+    // Unmount Interactions (Shutdown Window)
+    host_shutdown [label="System Shutdown Sequence\n(reboot / poweroff)", color="#ff3838", fillcolor="#2e1114"]
+    clean_unmount_ro [label="Unmounting Read-Only (ro) Mounts\n(/mnt/sda1 & /mnt/hitachi_2tb)", color="#00ff88", fillcolor="#11241a"]
+    no_write_op [label="Filesystem is Clean:\nNo superblock write or journal flush needed", color="#00ffcc", fillcolor="#161925"]
+    stay_standby [label="Standby Maintained\n(Zero motor spin-up latency during shutdown)", color="#00ffcc", fillcolor="#161925"]
+
+    host_shutdown -> clean_unmount_ro [label="Systemd unmount task"]
+    clean_unmount_ro -> no_write_op [label="Evaluates ro state"]
+    no_write_op -> stay_standby [label="No physical disk access", color="#00ff88"]
+    
+    standby_auto -> clean_unmount_ro [label="Current state is Standby", style="dashed", color="#00ff88"]
+    force_standby -> clean_unmount_ro [label="Current state is Standby", style="dashed", color="#ff00cc"]
+}

@@ -1,0 +1,79 @@
+digraph ShutdownProgression {
+    bgcolor="#0d0e15"
+    pad="0.5"
+    fontname="Courier New"
+    fontsize=18
+    fontcolor="#00d2ff"
+    label="SYSTEMD SHUTDOWN PROGRESSION FLOWCHART"
+    labelloc="t"
+
+    node [
+        fontname="Courier New"
+        fontsize=9
+        fontcolor="#ffffff"
+        style="filled,solid"
+        fillcolor="#161925"
+        color="#00d2ff"
+        penwidth=2
+        shape=box
+    ]
+    edge [
+        fontname="Courier New"
+        fontsize=8
+        fontcolor="#ff00cc"
+        color="#ff00cc"
+        penwidth=1.5
+    ]
+
+    // Step 1: User Request
+    initiation [label="1. SHUTDOWN INITIATED\nUser invokes 'reboot' or 'poweroff'\nSystem transitions to shutdown.target", fillcolor="#2e1114", color="#ff3838"]
+
+    // Step 2: D-Bus & Desktop Services
+    desktop_cleanup [label="2. DESKTOP SESSION TERMINATION\nsystemd[1] stops session c2 of User jeb\nLightDM and X11 display server are killed", fillcolor="#121e28", color="#00ffcc"]
+    kde_errors [label="X11 Server Dies:\nkactivitymanagerd & kglobalaccel5 log:\n'The X11 connection broke (error 1)'", fillcolor="#2b1426", color="#ff00cc"]
+
+    initiation -> desktop_cleanup
+    desktop_cleanup -> kde_errors [label="Graceful stop signals"]
+
+    // Step 3: Network Manager & D-Bus Dispatcher Fails
+    network_stop [label="3. NETWORK SERVICES TEARDOWN\nNetworkManager caught SIGTERM\nStopping WPA Supplicant & Resolved", fillcolor="#121e28", color="#00ffcc"]
+    nm_dispatcher_warn [label="Warning Logged:\n'dispatcher: (61) failed:\nUnit nm-dispatcher.service is masked'", fillcolor="#242411", color="#ffff00"]
+    dbus_conflicts [label="D-Bus Activation Conflict:\n'Transaction for systemd-resolved.service/start is destructive\n(shutdown.target stop queued)'", fillcolor="#2e1114", color="#ff3838"]
+
+    desktop_cleanup -> network_stop
+    network_stop -> nm_dispatcher_warn [label="NM invokes dispatcher"]
+    network_stop -> dbus_conflicts [label="Resolved attempts restart during stop"]
+
+    // Step 4: Filesystem Unmounting Phase
+    unmount_target [label="4. FILE SYSTEM UNMOUNTING\nsystemd[1] initiates unmount operations\nTarget: Unmount All Filesystems", fillcolor="#121e28", color="#00ffcc"]
+    
+    subgraph cluster_unmount_comparison {
+        label="Filesystem State Handling"
+        color="#a29bfe"
+        style="dashed"
+        
+        unmount_rw [label="Read-Write (rw) Mounts\n(e.g., historical sde /mnt/hitachi_2tb)\nRequires journal flush & dirty flag update", fillcolor="#2d161a", color="#ff5252"]
+        spinup_delay [label="ATA Command Forces Spin-up\nKernel blocks until drive motor reaches speed\nResult: 5–11s latency per drive", fillcolor="#2d161a", color="#ff5252"]
+        
+        unmount_ro [label="Read-Only (ro) Mounts\n(Updated sde /mnt/hitachi_2tb & sdc /mnt/sda1)\nNo metadata writes are necessary", fillcolor="#11241a", color="#00ff88"]
+        stay_standby_node [label="Quiescent State Maintained\nUnmount completes instantly\nResult: Zero spin-up latency", fillcolor="#11241a", color="#00ff88"]
+
+        unmount_rw -> spinup_delay [label="Write to block device"]
+        unmount_ro -> stay_standby_node [label="Purely memory operation"]
+    }
+
+    nm_dispatcher_warn -> unmount_target
+    dbus_conflicts -> unmount_target
+    unmount_target -> unmount_rw [label="Mount type: rw"]
+    unmount_target -> unmount_ro [label="Mount type: ro"]
+
+    // Step 5: LVM and Final Target
+    lvm_cleanup [label="5. BLOCK TELEMETRY & LVM MONITOR\nStopping LVM2 mirrors, snapshots etc.\n(lvm2-monitor.service takes ~9.0s)", fillcolor="#121e28", color="#00ffcc"]
+    shutdown_target [label="6. SYSTEM SHUTDOWN TARGET REACHED\nsystemd-shutdown[1] executes in initramfs\nSyncing filesystems and block devices", fillcolor="#121e28", color="#00ffcc"]
+    final_reboot [label="7. REBOOT SYSCALL\nRemaining processes SIGKILLed\nsystemd-journald stopped\nHardware power cycle or reset command", fillcolor="#2e1114", color="#ff3838"]
+
+    spinup_delay -> lvm_cleanup
+    stay_standby_node -> lvm_cleanup
+    lvm_cleanup -> shutdown_target
+    shutdown_target -> final_reboot [label="Final initramfs handover"]
+}

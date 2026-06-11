@@ -1,0 +1,57 @@
+digraph G {
+    fontname="Helvetica,Arial,sans-serif"
+    node [fontname="Helvetica,Arial,sans-serif", shape=box, style="filled,rounded", color="#2c3e50", fillcolor="#ecf0f1", penwidth=2]
+    edge [fontname="Helvetica,Arial,sans-serif", color="#34495e", penwidth=1.5]
+    
+    // Title
+    label="Quiescent HDD Standby & Shutdown Unmount Architecture"
+    labelloc="t"
+    fontsize=16
+    
+    // Subgraphs for states
+    subgraph cluster_legend {
+        label="Legend"
+        style="dashed,rounded"
+        color="#7f8c8d"
+        legend_rw [label="Read-Write (rw)", fillcolor="#fab1a0", color="#e17055"]
+        legend_ro [label="Read-Only (ro)", fillcolor="#55efc4", color="#00b894"]
+        legend_hw [label="Hardware / Drive", fillcolor="#dfe6e9", color="#b2bec3"]
+    }
+    
+    // Nodes
+    sysd [label="Systemd / Shutdown Controller\n(Triggered by reboot/shutdown)", fillcolor="#74b9ff", color="#0984e3"]
+    udisks [label="udisks2.service (Disk Manager)\n(Cleaning up states)", fillcolor="#a29bfe", color="#6c5ce7"]
+    
+    subgraph cluster_sde {
+        label="Hitachi 2TB (/dev/sde)"
+        style="solid,rounded"
+        color="#b2bec3"
+        sde_mount [label="/mnt/hitachi_2tb\n(Filesystem Mount)", fillcolor="#55efc4", color="#00b894"]
+        sde_drive [label="Drive Motor\n(Remains in Standby)", fillcolor="#dfe6e9", color="#b2bec3"]
+    }
+
+    subgraph cluster_sdc {
+        label="WD AV-GP 1TB (/dev/sdc)"
+        style="solid,rounded"
+        color="#b2bec3"
+        sdc_mount [label="/mnt/sda1\n(Filesystem Mount)", fillcolor="#55efc4", color="#00b894"]
+        sdc_drive [label="Drive Motor\n(Remains in Standby)", fillcolor="#dfe6e9", color="#b2bec3"]
+    }
+
+    subgraph cluster_sdg {
+        label="WD Black 4TB (/dev/sdg)"
+        style="solid,rounded"
+        color="#b2bec3"
+        sdg_mount [label="/mnt/pdf_backup\n(noauto, Unmounted)", fillcolor="#dfe6e9", color="#b2bec3"]
+        sdg_drive [label="Drive Motor\n(Remains in Standby)", fillcolor="#dfe6e9", color="#b2bec3"]
+    }
+
+    // Connections
+    sysd -> udisks [label="1. Stopping service"]
+    sysd -> sde_mount [label="2. Unmounts /mnt/hitachi_2tb"]
+    sysd -> sdc_mount [label="2. Unmounts /mnt/sda1"]
+    
+    sde_mount -> sde_drive [label="Read-Only: No dirty flags to write\nNo Spindown Wakeup!", style="dashed", color="#00b894"]
+    sdc_mount -> sdc_drive [label="Read-Only: No journal to flush\nNo Spindown Wakeup!", style="dashed", color="#00b894"]
+    sdg_mount -> sdg_drive [label="Not mounted: No action", style="dashed", color="#7f8c8d"]
+}

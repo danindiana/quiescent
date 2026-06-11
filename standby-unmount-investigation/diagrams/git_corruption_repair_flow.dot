@@ -1,0 +1,60 @@
+digraph GitCorruptionRepair {
+    bgcolor="#0d0e15"
+    pad="0.5"
+    fontname="Courier New"
+    fontsize=18
+    fontcolor="#ff00cc"
+    label="GIT OBJECT CORRUPTION & REPAIR WORKFLOW"
+    labelloc="t"
+
+    node [
+        fontname="Courier New"
+        fontsize=9
+        fontcolor="#ffffff"
+        style="filled,solid"
+        fillcolor="#161925"
+        color="#ff00cc"
+        penwidth=2
+        shape=box
+    ]
+    edge [
+        fontname="Courier New"
+        fontsize=8
+        fontcolor="#00ffcc"
+        color="#00ffcc"
+        penwidth=1.5
+    ]
+
+    // Step 1: Detection
+    detection [label="1. CORRUPTION DETECTED\nBackground git gc warnings observed\nCommand: git fsck --full", fillcolor="#2e1114", color="#ff3838"]
+    corrupt_log [label="Corrupt Index State:\n- broken link from tree 329174011f...\n- missing blob 15ab154f72...\n- File: CollationTest_NON_IGNORABLE_SHORT.txt", fillcolor="#2d161a", color="#ff5252"]
+
+    detection -> corrupt_log [label="Diagnostics"]
+
+    // Step 2: Isolation
+    stash_changes [label="2. STASH ACTIVE WORK\nSave uncommitted working tree modifications\nCommand: git stash push -m 'temp_stash_for_filter'", fillcolor="#121e28", color="#00ffcc"]
+    
+    corrupt_log -> stash_changes [label="Pre-repair boundary"]
+
+    // Step 3: Rewrite History
+    filter_branch [label="3. PURGE HISTORICAL REFERENCE\nRewrite commit history tree-wide to exclude corrupted file\nCommand: git filter-branch --force --index-filter \\\n'git rm --cached --ignore-unmatch CollationTest_NON_IGNORABLE_SHORT.txt' \\\n--prune-empty --tag-name-filter cat -- --all", fillcolor="#2b1426", color="#ff00cc"]
+
+    stash_changes -> filter_branch [label="Execute rewrite"]
+
+    // Step 4: De-reference Objects
+    reflog_expire [label="4. EXPIRE REFLOGS\nInstantly expire history reference log pointer archives\nCommand: git reflog expire --expire=now --all", fillcolor="#121e28", color="#00ffcc"]
+    
+    filter_branch -> reflog_expire [label="Remove cache logs"]
+
+    // Step 5: Prune & Rebuild
+    git_gc [label="5. AGGRESSIVE GARBAGE COLLECTION\nForce instant pruning of unreferenced loose objects & repack\nCommand: git gc --prune=now --aggressive", fillcolor="#121e28", color="#00ffcc"]
+    
+    reflog_expire -> git_gc [label="Purge loose objects"]
+
+    // Step 6: Verification
+    git_verify [label="6. REPOSITORY INTEGRITY VALIDATED\nRun consistency checks on index objects & commit graph\nCommand: git fsck", fillcolor="#11241a", color="#00ff88"]
+    clean_status [label="Clean Index State:\n- Checking object directories: 100% (256/256)\n- Checking objects: 100% (1287/1287)\n- Verifying commits: 100% (72/72)", fillcolor="#11241a", color="#00ff88"]
+
+    git_gc -> git_verify
+    git_verify -> clean_status [label="Verification reports clean"]
+}

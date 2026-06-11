@@ -1,0 +1,67 @@
+digraph FutureWorkflow {
+    bgcolor="#0d0e15"
+    pad="0.5"
+    fontname="Courier New"
+    fontsize=18
+    fontcolor="#00ff88"
+    label="FUTURE DIRECTIONS: AUTOMATED REMOUNT-ON-DEMAND & BACKUP"
+    labelloc="t"
+
+    node [
+        fontname="Courier New"
+        fontsize=9
+        fontcolor="#ffffff"
+        style="filled,solid"
+        fillcolor="#161925"
+        color="#00ff88"
+        penwidth=2
+        shape=box
+    ]
+    edge [
+        fontname="Courier New"
+        fontsize=8
+        fontcolor="#ff00cc"
+        color="#ff00cc"
+        penwidth=1.5
+    ]
+
+    // Step 1: Idle Quiescence (Default State)
+    default_state [label="1. QUIESCENT DEFAULT STATE\nHDD Archive mounts are mounted Read-Only (ro)\nDrives are parked in standby mode (motors off)", fillcolor="#11241a", color="#00ff88"]
+
+    // Step 2: Timer Trigger
+    timer_trigger [label="2. SYSTEMD TIMER OR CRON TRIGGER\nScheduled backup execution window opens\n(e.g., nightly at 02:00)", fillcolor="#121e28", color="#00d2ff"]
+
+    default_state -> timer_trigger [label="Scheduler event"]
+
+    // Step 3: Remount Read-Write
+    remount_rw [label="3. PRE-BACKUP REMOUNT (rw)\nRemount archive partitions with write permissions\nCommand: mount -o remount,rw /mnt/sda1", fillcolor="#242411", color="#ffff00"]
+    drive_spinup [label="Standby Platter Spin-Up:\nKernel wakes up drive motor\n(5–11s delay is expected and acceptable here)", fillcolor="#2d161a", color="#ff5252"]
+
+    timer_trigger -> remount_rw [label="Triggers pre-script"]
+    remount_rw -> drive_spinup [label="Disk write requested by mount change"]
+
+    // Step 4: Backup Execution
+    backup_run [label="4. BACKUP EXECUTION\nData copied/synchronized to target partitions\nCommand: rsync -aHAXx --delete /source/ /mnt/sda1/", fillcolor="#121e28", color="#00d2ff"]
+
+    drive_spinup -> backup_run [label="Drive is active/ready"]
+
+    // Step 5: Post-Backup Flush
+    sync_flush [label="5. DATA BUFFER SYNC\nFlush unwritten buffers and finalize ext4 journal\nCommand: sync", fillcolor="#2b1426", color="#ff00cc"]
+
+    backup_run -> sync_flush [label="Backup finishes successfully"]
+
+    // Step 6: Remount Read-Only
+    remount_ro [label="6. POST-BACKUP REMOUNT (ro)\nRemount partition to read-only mode immediately\nCommand: mount -o remount,ro /mnt/sda1", fillcolor="#11241a", color="#00ff88"]
+
+    sync_flush -> remount_ro [label="Triggers post-script"]
+
+    // Step 7: Re-Park Disk
+    idle_detector [label="7. IDLE STANDBY TRANSITION\nStandby timer (APM / idle-disk-park.sh) detects no I/O\nPlatters spun down, returning drive to quiescent sleep", fillcolor="#11241a", color="#00ff88"]
+
+    remount_ro -> idle_detector [label="Idle window expires (1–5 min)"]
+
+    // Step 8: Safe Shutdown Path
+    sys_shutdown [label="8. SAFE SHUTDOWN PATH\nSystem can be shut down safely at any time\nZero shutdown latency from archive drives", fillcolor="#11241a", color="#00ff88"]
+
+    idle_detector -> sys_shutdown [label="Drive remains in standby during poweroff"]
+}

@@ -1,0 +1,105 @@
+digraph StorageTopology {
+    // Neon Dark Theme Settings
+    bgcolor="#0d0e15"
+    pad="0.5"
+    fontname="Courier New"
+    fontsize=18
+    fontcolor="#00ffcc"
+    label="SYSTEM STORAGE TOPOLOGY & SMART HEALTH MAP"
+    labelloc="t"
+
+    node [
+        fontname="Courier New"
+        fontsize=10
+        fontcolor="#ffffff"
+        style="filled,solid"
+        fillcolor="#161925"
+        color="#00d2ff"
+        penwidth=2
+        shape=box
+    ]
+    edge [
+        fontname="Courier New"
+        fontsize=9
+        fontcolor="#ff00cc"
+        color="#ff00cc"
+        penwidth=1.5
+    ]
+
+    // Host System Grouping
+    subgraph cluster_host {
+        label="Host System: WORLOCK"
+        color="#a29bfe"
+        style="dashed"
+        fontcolor="#a29bfe"
+        fontsize=14
+
+        // NVMe Grouping
+        subgraph cluster_nvme {
+            label="NVMe Controller (PCIe High-Speed)"
+            color="#3399ff"
+            fontcolor="#3399ff"
+            style="solid"
+            
+            nvme2n1 [label="nvme2n1 (Intel SSDPEKNW010 1TB)\n[System Boot]\nPOH: 1995 hrs | PC: 66\nTemp: 29°C", color="#00ffcc", fillcolor="#121e28"]
+            nvme0n1 [label="nvme0n1 (WDS500G2X0C 500GB)\n[Walter Root System]\nPOH: ~45,000 hrs\nTemp: 30°C", color="#00ffcc", fillcolor="#121e28"]
+            nvme1n1 [label="nvme1n1 (Crucial CT4000P3 4TB)\n[NVMe Staging Area]\nPOH: ~45,000 hrs\nTemp: 29°C", color="#00ffcc", fillcolor="#121e28"]
+        }
+
+        // SATA SSD Grouping
+        subgraph cluster_sata_ssd {
+            label="SATA SSDs (Active/Idle)"
+            color="#00ff88"
+            fontcolor="#00ff88"
+            style="solid"
+
+            sda [label="sda (Samsung 870 EVO 500GB)\n[Samsung SSD Mount]\nPOH: 1995 hrs | PC: 66\nTemp: 29°C", color="#00ff88", fillcolor="#11241a"]
+            sdb [label="sdb (WDC WDS100T2B 1TB)\n[Unused SSD Partitions]\nPOH: 31,526 hrs | PC: 1395\nTemp: 30°C", color="#00ff88", fillcolor="#11241a"]
+        }
+
+        // SATA Quiescent HDD Grouping (Standby/Sleep Focus)
+        subgraph cluster_quiescent_hdd {
+            label="Mechanical HDDs (Quiescent Power Management)"
+            color="#ff0055"
+            fontcolor="#ff0055"
+            style="solid"
+
+            sdc [label="sdc (WDC WD10EURX 1TB)\n[WD Blue Backup - AV-GP]\nPOH: 72,561 hrs | PC: 471\nStart/Stop: 526 | Load/Unload: 8587\nRatio: 1.1 (Surveillance 24/7 history)", color="#ff9f43", fillcolor="#2d161a"]
+            sde [label="sde (Hitachi HUA723020 2TB)\n[Hitachi Storage - Ultrastar]\nPOH: 43,264 hrs | PC: 751\nStart/Stop: 18,209 | Load/Unload: 18730\nRatio: 24.2 (High Spindown Wear)", color="#ff5252", fillcolor="#2d161a"]
+            sdg [label="sdg (WDC WD4005FZBX 4TB)\n[WD Black - PDF Backup]\nPOH: 22,382 hrs | PC: 1204\nStart/Stop: 3520 | Load/Unload: 4117\nRatio: 2.9 (Noauto standby)", color="#ff9f43", fillcolor="#2d161a"]
+        }
+
+        // SATA RAID HDD Grouping
+        subgraph cluster_sata_raid {
+            label="SATA RAID Array (Active Mechanical)"
+            color="#ffff00"
+            fontcolor="#ffff00"
+            style="solid"
+
+            sdd [label="sdd (Seagate IronWolf 12TB)\n[RAID-0 Member]\nPOH: 16,869 hrs | PC: 927\nStart/Stop: 1046 | Load/Unload: 67690\nTemp: 29°C", color="#ffff00", fillcolor="#242411"]
+            sdf [label="sdf (Seagate IronWolf 12TB)\n[RAID-0 Member]\nPOH: 17,328 hrs | PC: 939\nStart/Stop: 1112 | Load/Unload: 78484\nTemp: 29°C", color="#ffff00", fillcolor="#242411"]
+        }
+    }
+
+    // Logical Mount Points & Arrays
+    md0 [label="/dev/md0 (RAID-0 Array)\n11TB Logical Volume\nMounted on /mnt/raid0", color="#ffff00", fillcolor="#161925"]
+    root_fs [label="/ (Root Filesystem)\nMounted on nvme2n1p1\nType: ext4", color="#00d2ff", fillcolor="#161925"]
+    nvme_stage_fs [label="/mnt/nvme_staging\nMounted on nvme1n1p2\nType: ext4", color="#00d2ff", fillcolor="#161925"]
+    sda_mount [label="/mnt/samsung_ssd\nMounted on sda1\nType: ext4", color="#00ff88", fillcolor="#161925"]
+    
+    sdc_mount [label="/mnt/sda1 (WD-Blue)\nMounted: READ-ONLY (ro)\nType: ext4", color="#00ffcc", fillcolor="#122c26"]
+    sde_mount [label="/mnt/hitachi_2tb\nMounted: READ-ONLY (ro)\nType: ext4", color="#00ffcc", fillcolor="#122c26"]
+    sdg_mount [label="/mnt/pdf_backup\nStatus: UNMOUNTED (noauto)\nType: ext4", color="#8395a7", fillcolor="#222f3e"]
+
+    // Physical to Logical Mappings
+    nvme2n1 -> root_fs [label="partition p1"]
+    nvme1n1 -> nvme_stage_fs [label="partition p2"]
+    sda -> sda_mount [label="partition sda1"]
+    
+    sdc -> sdc_mount [label="sdc1 (remounted ro)", color="#00ffcc"]
+    sde -> sde_mount [label="sde1 (remounted ro)", color="#00ffcc"]
+    sdg -> sdg_mount [label="sdg1 (noauto)", color="#8395a7"]
+
+    sdd -> md0 [label="RAID-0 striping", color="#ffff00"]
+    sdf -> md0 [label="RAID-0 striping", color="#ffff00"]
+}

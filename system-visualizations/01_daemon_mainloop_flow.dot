@@ -1,0 +1,33 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="01. DAEMON WATCH LOOP FLOW (quiescentd)";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+        
+        start [label="Start quiescentd", fillcolor="#11241a", color="#00ff88"];
+        init [label="Parse /etc/quiescent.conf\nLoad drives into memory"];
+        loop [label="Watch loop tick\n(Sleep intervalSecs)"];
+        poll [label="Poll next watch-mode drive"];
+        check_pstate [label="Query drive.powerState()\n(hdparm -C)"];
+        is_asleep [label="Is drive already\nstandby/sleeping?"];
+        reset_window [label="Reset haveSample = false\n(Never wake it)"];
+        read_io [label="Read block I/O count\n(/sys/block/<dev>/stat)"];
+        io_changed [label="Has block I/O\nchanged since last tick?"];
+        update_state [label="Update lastIo & idleSince\nSet haveSample = true"];
+        check_dur [label="Has idleSince duration\nexceeded threshold?"];
+        park [label="Call drive.forcePark()\n(hdparm -y)"];
+        
+        start -> init -> loop -> poll -> check_pstate -> is_asleep;
+        is_asleep -> reset_window [label="Yes"];
+        is_asleep -> read_io [label="No"];
+        read_io -> io_changed;
+        io_changed -> update_state [label="Yes"];
+        io_changed -> check_dur [label="No"];
+        check_dur -> park [label="Yes (idle)"];
+        check_dur -> poll [label="No"];
+        reset_window -> poll;
+        update_state -> poll;
+        park -> poll;
+    }
+    

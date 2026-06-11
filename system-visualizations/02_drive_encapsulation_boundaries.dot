@@ -1,0 +1,32 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="02. DRIVE ENCAPSULATION BOUNDARIES (drive.nim)";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        subgraph cluster_public {
+            label="Public API (* Exported)"; color="#00ff88"; fontcolor="#00ff88"; style="solid";
+            drive_obj [label="Drive = object\n- byId: string\n- mode: Mode\n- value: int", fillcolor="#11241a", color="#00ff88"];
+            pstate [label="powerState() -> PowerState", fillcolor="#11241a", color="#00ff88"];
+            present [label="present() -> bool", fillcolor="#11241a", color="#00ff88"];
+            poll [label="poll() -> bool", fillcolor="#11241a", color="#00ff88"];
+            force_park [label="forcePark()", fillcolor="#11241a", color="#00ff88"];
+        }
+
+        subgraph cluster_private {
+            label="Encapsulated State (Module Private)"; color="#ff00cc"; fontcolor="#ff00cc"; style="dashed";
+            last_io [label="lastIo: string", fillcolor="#2b1426", color="#ff00cc"];
+            idle_since [label="idleSince: Time", fillcolor="#2b1426", color="#ff00cc"];
+            have_sample [label="haveSample: bool", fillcolor="#2b1426", color="#ff00cc"];
+            block_dev [label="blockDev() -> string\n(Resolves symlink)", fillcolor="#2b1426", color="#ff00cc"];
+            io_counter [label="ioCounter() -> string\n(Reads sysfs stat)", fillcolor="#2b1426", color="#ff00cc"];
+        }
+
+        poll -> io_counter [label="Calls private helper"];
+        poll -> block_dev [label="Resolves kernel name"];
+        poll -> last_io [label="Mutates"];
+        poll -> idle_since [label="Mutates"];
+        poll -> have_sample [label="Mutates"];
+    }
+    

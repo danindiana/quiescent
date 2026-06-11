@@ -1,0 +1,19 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="20. MOUNT CONTROL SOCKET INTERFACE";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        client [label="Client / Script Command", color="#ffff00", fillcolor="#242411"];
+        socket [label="Unix Socket File\n/run/quiescent_mountd.sock", color="#00ff88", fillcolor="#11241a"];
+        daemon [label="quiescent_mountd listener daemon"];
+        cmd_rw [label="Command: 'rw /mnt/sda1'\n-> Remount RW"];
+        cmd_ro [label="Command: 'ro /mnt/sda1'\n-> Sync & Remount RO"];
+
+        client -> socket [label="Write bytes"];
+        socket -> daemon [label="Read line"];
+        daemon -> cmd_rw;
+        daemon -> cmd_ro;
+    }
+    

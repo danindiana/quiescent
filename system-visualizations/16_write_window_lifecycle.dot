@@ -1,0 +1,17 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="16. WRITE-WINDOW LIFECYCLE (quiescent_mountd)";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        start [label="Trigger: Backup Script Executed", color="#00ff88", fillcolor="#11241a"];
+        open_window [label="Remount RW:\n mount -o remount,rw /mnt/sda1", color="#ffff00", fillcolor="#242411"];
+        write_ops [label="Perform write commands\n(e.g., rsync data /mnt/sda1/)"];
+        sys_sync [label="Cache flush:\nsync"];
+        close_window [label="Remount RO:\n mount -o remount,ro /mnt/sda1", color="#00ff88", fillcolor="#11241a"];
+        finish [label="Backup Complete", color="#00ff88", fillcolor="#11241a"];
+
+        start -> open_window -> write_ops -> sys_sync -> close_window -> finish;
+    }
+    

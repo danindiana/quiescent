@@ -1,0 +1,17 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="11. HARD DRIVE POWER STATE TRANSITIONS";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        ps_active [label="ACTIVE/IDLE\n(Platters spin at rated RPM\nHeads loaded on disc)", color="#00ff88", fillcolor="#11241a"];
+        ps_standby [label="STANDBY\n(Platters stopped\nHeads parked in landing zone)", color="#ffff00", fillcolor="#242411"];
+        ps_sleeping [label="SLEEPING\n(Controller power reduced\nPlatters stopped)", color="#ff5252", fillcolor="#2d161a"];
+
+        ps_active -> ps_standby [label="Standby timer expires\nOR hdparm -y issued"];
+        ps_standby -> ps_active [label="Host disk read/write request\n(5-15s spin-up delay)", color="#ff5252"];
+        ps_active -> ps_sleeping [label="hdparm -Y issued"];
+        ps_sleeping -> ps_active [label="Hardware reset / bus cycle", color="#ff5252"];
+    }
+    

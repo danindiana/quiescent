@@ -1,0 +1,20 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="07. HDPARM / ATA COMMANDS MAPPING";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        pstate [label="powerState()", color="#00ff88", fillcolor="#11241a"];
+        fpark [label="forcePark()", color="#ff00cc", fillcolor="#2b1426"];
+        atimer [label="armTimer()", color="#ffff00", fillcolor="#242411"];
+
+        c_cmd [label="hdparm -C <device>\n(ATA CHECK POWER MODE)", color="#00ff88", fillcolor="#161925"];
+        y_cmd [label="hdparm -y <device>\n(ATA STANDBY IMMEDIATE)", color="#ff00cc", fillcolor="#161925"];
+        s_cmd [label="hdparm -S <value> <device>\n(ATA STANDBY TIMER)", color="#ffff00", fillcolor="#161925"];
+
+        pstate -> c_cmd;
+        fpark -> y_cmd;
+        atimer -> s_cmd;
+    }
+    

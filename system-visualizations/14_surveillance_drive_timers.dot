@@ -1,0 +1,15 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="14. WD AV-GP SURVEILLANCE TIMER IGNORANCE";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        firmware [label="WD AV-GP (WD10EURX) Firmware\n(Optimized for 24/7 DVR recording)", color="#ffff00", fillcolor="#242411"];
+        apm_command [label="Host sends APM -B 127 / -S 24"];
+        ignored [label="ATA Standby Timer IGNORED by firmware\n(Prevents accidental footage loss)"];
+        spin_constant [label="Platters spin 24/7 constantly\nGenerates continuous idle heat (~53°C)", color="#ff5252", fillcolor="#2d161a"];
+
+        firmware -> apm_command -> ignored -> spin_constant;
+    }
+    

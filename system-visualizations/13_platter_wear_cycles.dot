@@ -1,0 +1,22 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="13. PLATTER WEAR MECHANICS: STEADY STATE VS SPIN-UP";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        subgraph cluster_steady {
+            label="Steady-State Rotation"; color="#00ff88"; fontcolor="#00ff88";
+            ss_bearing [label="Fluid Dynamic Bearings (FDB)\nMaintain clean film barrier"];
+            ss_friction [label="Very low wear friction\nThermal equilibrium reached"];
+            ss_bearing -> ss_friction;
+        }
+
+        subgraph cluster_spinup {
+            label="Standby Spin-Up Transition (FATIGUE)"; color="#ff5252"; fontcolor="#ff5252";
+            su_torque [label="High starting torque\nMotor pulls peak current (~2.0A)"];
+            su_contact [label="Microscopic metal-on-metal wear\nbefore hydrodynamic lift is established"];
+            su_torque -> su_contact;
+        }
+    }
+    

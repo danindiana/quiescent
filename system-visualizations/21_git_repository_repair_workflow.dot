@@ -1,0 +1,16 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="21. GIT REPOSITORY OBJECT REPAIR PIPELINE";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        corrupt_state [label="Missing blob detected in git index", color="#ff5252", fillcolor="#2d161a"];
+        stash [label="git stash push\n(Saves current workspace changes)"];
+        filter_branch [label="git filter-branch --force --index-filter ...\n(Wipes corrupted file from history)", color="#ff00cc", fillcolor="#2b1426"];
+        expire_reflogs [label="git reflog expire --expire=now --all"];
+        repack_prune [label="git gc --prune=now --aggressive\n(Prunes orphan object blobs)", color="#00ff88", fillcolor="#11241a"];
+
+        corrupt_state -> stash -> filter_branch -> expire_reflogs -> repack_prune;
+    }
+    

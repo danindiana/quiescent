@@ -1,0 +1,15 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="10. SYSTEMD SERVICE UNIT DEPENDENCIES";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        local_fs [label="local-fs.target\n(All local file systems mounted)", color="#ffff00", fillcolor="#242411"];
+        q_service [label="quiescentd.service\n(Daemon process)", color="#00ff88", fillcolor="#11241a"];
+        multi_user [label="multi-user.target\n(System fully booted CLI)", color="#ffff00", fillcolor="#242411"];
+
+        local_fs -> q_service [label="After="];
+        q_service -> multi_user [label="WantedBy="];
+    }
+    

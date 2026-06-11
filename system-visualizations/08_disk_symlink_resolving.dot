@@ -1,0 +1,16 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="08. BY-ID SYMLINK STABLE RESOLUTION";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        symlink [label="Stable Identifier:\n/dev/disk/by-id/ata-Hitachi_HUA723020ALA640_MK0171YFJHSSDA", color="#00ff88", fillcolor="#11241a"];
+        expand [label="expandSymlink()\n(Resolves udev directory symlink)"];
+        raw_target [label="Relative Target:\n../../sde"];
+        filename [label="extractFilename()\n(Strips relative paths)"];
+        kernel_name [label="Kernel block name:\nsde", color="#ffff00", fillcolor="#242411"];
+
+        symlink -> expand -> raw_target -> filename -> kernel_name;
+    }
+    

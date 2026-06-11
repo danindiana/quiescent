@@ -1,0 +1,16 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="23. MASKED NM-DISPATCHER FAILURE DURING SHUTDOWN";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        nm_stop [label="NetworkManager receives SIGTERM", color="#00ff88", fillcolor="#11241a"];
+        trigger_disp [label="Attempts to trigger network event scripts"];
+        dbus_req [label="D-Bus activation request sent for\ndbus-org.freedesktop.nm-dispatcher.service"];
+        mask_check [label="D-Bus Daemon checks systemd unit state"];
+        warn_log [label="Warning Logged:\n'nm-dispatcher.service is masked'\nActivation Fails", color="#ff5252", fillcolor="#2d161a"];
+
+        nm_stop -> trigger_disp -> dbus_req -> mask_check -> warn_log;
+    }
+    

@@ -1,0 +1,22 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="09. SMART ATTRIBUTES EXTRACTION MAP";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        smart_out [label="Raw smartctl -a Output", color="#ffff00", fillcolor="#242411"];
+        parse_loop [label="Parse line-by-line"];
+        
+        attr_4 [label="Attribute 4: Start_Stop_Count\n(Cumulative platter spin-ups)"];
+        attr_9 [label="Attribute 9: Power_On_Hours\n(Total runtime)"];
+        attr_12 [label="Attribute 12: Power_Cycle_Count\n(Full system boots)"];
+        attr_193 [label="Attribute 193: Load_Cycle_Count\n(Head park operations)"];
+
+        smart_out -> parse_loop;
+        parse_loop -> attr_4 [label="ID 4"];
+        parse_loop -> attr_9 [label="ID 9"];
+        parse_loop -> attr_12 [label="ID 12"];
+        parse_loop -> attr_193 [label="ID 193"];
+    }
+    

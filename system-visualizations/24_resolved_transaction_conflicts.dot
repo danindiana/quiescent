@@ -1,0 +1,16 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="24. SYSTEMD TRANSACTION DESTRUCTIVE CONFLICTS";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        sys_shutdown [label="systemd initiates shutdown.target stop job", color="#ff5252", fillcolor="#2d161a"];
+        dbus_request [label="D-Bus daemon receives client activation request\nfor systemd-resolved.service"];
+        trans_eval [label="systemd transaction evaluator resolves dependencies"];
+        conflict_detected [label="Conflict Identified:\nResolved.service requires 'start' job\nBut shutdown.target requires 'stop' job", color="#ff5252", fillcolor="#2d161a"];
+        reject_start [label="Transaction rejected as destructive\nD-Bus activation fails", color="#ff5252", fillcolor="#2d161a"];
+
+        sys_shutdown -> dbus_request -> trans_eval -> conflict_detected -> reject_start;
+    }
+    

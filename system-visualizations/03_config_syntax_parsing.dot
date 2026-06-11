@@ -1,0 +1,25 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="03. CONFIG SYNTAX PARSING PIPELINE (config.nim)";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        raw_str [label="Raw Config File /etc/quiescent.conf", color="#ffff00", fillcolor="#242411"];
+        split_lines [label="splitLines()\nStrip whitespace"];
+        filter [label="Filter out blank lines & '#' comments"];
+        tokens [label="splitWhitespace()"];
+        is_interval [label="Token 0 == 'interval'?"];
+        set_int [label="parseInt(Token 1)\nUpdate Config.intervalSecs"];
+        parse_drive [label="Parse Drive Object:\n- byId = Token 0\n- mode = parseMode(Token 1)\n- value = parseInt(Token 2)"];
+        add_list [label="Add to Config.drives seq"];
+        result_cfg [label="Config Object\n(intervalSecs, seq[Drive])", color="#00ff88", fillcolor="#11241a"];
+
+        raw_str -> split_lines -> filter -> tokens -> is_interval;
+        is_interval -> set_int [label="Yes"];
+        is_interval -> parse_drive [label="No"];
+        parse_drive -> add_list;
+        set_int -> result_cfg;
+        add_list -> result_cfg;
+    }
+    

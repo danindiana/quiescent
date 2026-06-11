@@ -1,0 +1,21 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="06. SYSFS BLOCK I/O TELEMETRY INTERFACE";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        kernel_stat [label="Kernel Sysfs Stat File\n/sys/block/<dev>/stat", color="#ffff00", fillcolor="#242411"];
+        raw_content [label="Raw line content:\n'  28912     1982   892182   289218 ...'"];
+        split_fields [label="splitWhitespace()"];
+        field_0 [label="Field 0: Completed Reads"];
+        field_4 [label="Field 4: Completed Writes"];
+        concat [label="Format string: Read-Write\ne.g. '28912-289218'"];
+
+        kernel_stat -> raw_content -> split_fields;
+        split_fields -> field_0 [label="Index 0"];
+        split_fields -> field_4 [label="Index 4"];
+        field_0 -> concat;
+        field_4 -> concat;
+    }
+    

@@ -1,0 +1,17 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="04. INTERVAL SCHEDULING & SLEEP TIMING";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        sched_tick [label="1. Watch Loop Tick Starts", color="#00ff88", fillcolor="#11241a"];
+        poll_drives [label="2. Poll all watch-mode drives\nQueries sysfs/hdparm (takes ~2-5ms)"];
+        calc_sleep [label="3. Calculate Sleep Delay\nintervalSecs * 1000 ms"];
+        sleep_call [label="4. OS sleep() call\nYields CPU slice"];
+        wake_up [label="5. OS Wakeup\nSubject to scheduler latency (~0.1-5ms)", color="#ffff00", fillcolor="#242411"];
+
+        sched_tick -> poll_drives -> calc_sleep -> sleep_call -> wake_up;
+        wake_up -> sched_tick [label="Next loop iteration"];
+    }
+    

@@ -1,0 +1,27 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="05. POLICY EXECUTION MODELS: TIMER VS WATCH";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        subgraph cluster_timer {
+            label="Timer Mode (mTimer)"; color="#00ff88"; fontcolor="#00ff88"; style="solid";
+            t_boot [label="Daemon Startup", fillcolor="#11241a"];
+            t_exec [label="Execute: hdparm -S <value> <dev>", fillcolor="#11241a"];
+            t_kernel [label="Kernel SATA Driver Arms Controller", fillcolor="#11241a"];
+            t_idle [label="Drive Controller Spindown\n(Zero daemon interaction afterwards)", fillcolor="#11241a", color="#00ff88"];
+            t_boot -> t_exec -> t_kernel -> t_idle;
+        }
+
+        subgraph cluster_watch {
+            label="Watch Mode (mWatch)"; color="#ff00cc"; fontcolor="#ff00cc"; style="solid";
+            w_boot [label="Daemon Watch Loop", fillcolor="#2b1426"];
+            w_poll [label="Poll stats every N seconds", fillcolor="#2b1426"];
+            w_check [label="Check block I/O idle time", fillcolor="#2b1426"];
+            w_park [label="Execute: hdparm -y <dev>\n(Forced spindown)", fillcolor="#2b1426", color="#ff00cc"];
+            w_boot -> w_poll -> w_check -> w_park;
+            w_park -> w_poll [label="Loop continuous"];
+        }
+    }
+    

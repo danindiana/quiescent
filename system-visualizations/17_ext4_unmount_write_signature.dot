@@ -1,0 +1,19 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="17. EXT4 UNMOUNT WRITE SIGNATURE ANALYSIS";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        unmount_req [label="Systemd triggers unmount", color="#ffff00", fillcolor="#242411"];
+        rw_check [label="Is filesystem mounted Read-Write (rw)?"];
+        flush_journal [label="Flush uncommitted journal blocks to disk"];
+        write_sb [label="Update Ext4 Superblock\nClear EXT4_VALID_FS (dirty) flag"];
+        wakeup_spindown [label="FORCED Platter Spin-Up\n(Standby drive motor starts up)", color="#ff5252", fillcolor="#2d161a"];
+
+        unmount_req -> rw_check;
+        rw_check -> flush_journal [label="Yes"];
+        flush_journal -> write_sb -> wakeup_spindown;
+        rw_check -> wakeup_spindown [label="No (Ro unmount - metadata already clean)", style="dashed", color="#00ff88"];
+    }
+    

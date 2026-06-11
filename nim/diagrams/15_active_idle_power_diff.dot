@@ -1,0 +1,22 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="15. ACTIVE-IDLE VS STANDBY THERMAL FOOTPRINT";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        subgraph cluster_active {
+            label="Active / Idle Mode (Spinning)"; color="#ff5252"; fontcolor="#ff5252";
+            a_power [label="Power consumption: ~5.3W"];
+            a_temp [label="Operating Temperature: ~53°C"];
+            a_power -> a_temp;
+        }
+
+        subgraph cluster_standby {
+            label="Standby Mode (Parked)"; color="#00ff88"; fontcolor="#00ff88";
+            s_power [label="Power consumption: ~0.4W"];
+            s_temp [label="Operating Temperature: ~28°C"];
+            s_power -> s_temp;
+        }
+    }
+    

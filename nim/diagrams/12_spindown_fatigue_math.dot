@@ -1,0 +1,19 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="12. SPINDOWN FATIGUE & WEAR MATHEMATICS";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        boots [label="Power_Cycle_Count (PC)\n(Number of cold boots)"];
+        spinups [label="Start_Stop_Count (SS)\n(Total spin-ups from standby + boot)"];
+        
+        formula [label="Spin-up Ratio Formula:\nRatio = SS / PC", color="#00ffcc"];
+        wear_cal [label="Spindown Wear Count:\nCycles = SS - PC", color="#ff00cc"];
+        
+        boots -> formula;
+        spinups -> formula;
+        boots -> wear_cal;
+        spinups -> wear_cal;
+    }
+    

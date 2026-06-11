@@ -1,0 +1,17 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="22. GIT REPO NESTED WORKSPACE DRIFT";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        parent_repo [label="Parent Repository\n(hybrid-framework)", color="#00ff88", fillcolor="#11241a"];
+        hermes [label="hermes-agent-wizard sub-workspace\n(Contains uncommitted code)", color="#ffff00", fillcolor="#242411"];
+        iron_cross [label="iron-cross-anomaly sub-workspace\n(Has modified files)", color="#ffff00", fillcolor="#242411"];
+        netdata [label="netdata-switch sub-workspace\n(Has untracked content)", color="#ffff00", fillcolor="#242411"];
+
+        parent_repo -> hermes [label="Tracks submodule state"];
+        parent_repo -> iron_cross [label="Tracks submodule state"];
+        parent_repo -> netdata [label="Tracks submodule state"];
+    }
+    

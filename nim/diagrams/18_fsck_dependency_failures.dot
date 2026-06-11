@@ -1,0 +1,16 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="18. FSCK DEPENDENCY FAILURE SEQUENCE";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        boot_init [label="System Boot Sequence Started", color="#00ff88", fillcolor="#11241a"];
+        fsck_check [label="systemd-fsck runs on storage devices"];
+        fsck_failed [label="fsck fails with exit status 4\n(Filesystem errors detected)", color="#ff5252", fillcolor="#2d161a"];
+        mount_dep [label="Dependency failed for mountpoint\n(e.g., /mnt/nvme_staging)", color="#ff5252", fillcolor="#2d161a"];
+        abort_job [label="systemd aborts start job for mount", color="#ff5252", fillcolor="#2d161a"];
+
+        boot_init -> fsck_check -> fsck_failed -> mount_dep -> abort_job;
+    }
+    

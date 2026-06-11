@@ -1,0 +1,17 @@
+
+    digraph G {
+        bgcolor="#0d0e15"; pad="0.4"; fontname="Courier New"; fontsize=14; fontcolor="#00ffcc";
+        label="25. END-TO-END FUTURE AUTOMATED BACKUP SEQUENCE";
+        node [fontname="Courier New", fontsize=9, fontcolor="#ffffff", style="filled,solid", fillcolor="#161925", color="#00d2ff", penwidth=2, shape=box];
+        edge [fontname="Courier New", fontsize=8, fontcolor="#ff00cc", color="#ff00cc", penwidth=1.5];
+
+        cron_start [label="Cron scheduler executes backup wrapper", color="#00ff88", fillcolor="#11241a"];
+        remount_rw [label="quiescent_mountd remounts disk rw", color="#ffff00", fillcolor="#242411"];
+        backup_sync [label="rsync syncs workspace files"];
+        flush_cache [label="sync command executed"];
+        remount_ro [label="quiescent_mountd remounts disk ro", color="#00ff88", fillcolor="#11241a"];
+        standby_wait [label="Drive remains in standby safely during shutdown", color="#00ff88", fillcolor="#11241a"];
+
+        cron_start -> remount_rw -> backup_sync -> flush_cache -> remount_ro -> standby_wait;
+    }
+    

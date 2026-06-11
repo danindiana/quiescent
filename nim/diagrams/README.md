@@ -1,5 +1,13 @@
 # Quiescent System Visualizations Catalog
 
+[![Language](https://img.shields.io/badge/Language-Nim-orange?logo=nim)](../src)
+[![Platform](https://img.shields.io/badge/Platform-Linux-blue?logo=linux)](https://en.wikipedia.org/wiki/Linux)
+[![Storage](https://img.shields.io/badge/Storage-Standby--Optimized-green)](#)
+[![SMART](https://img.shields.io/badge/SMART%20Diagnostics-Safe--Skip-brightgreen)](#)
+[![WD AV-GP 1TB](https://img.shields.io/badge/WD%20AV--GP%201TB-Standby--safe-green)](#)
+[![Hitachi 2TB](https://img.shields.io/badge/Hitachi%202TB-ro--quiescent-success)](#)
+[![WD Black 4TB](https://img.shields.io/badge/WD%20Black%204TB-auto--standby-success)](#)
+
 This folder contains a comprehensive gallery of **25 custom architecture maps, transition flowcharts, and hardware diagnostic diagrams** that describe the quiescent standby system design, daemon codebase mechanics, OS storage boundaries, and Git repository operations.
 
 All diagrams are styled with a dark background and neon high-visibility styling to match bare-metal system architecture aesthetics.

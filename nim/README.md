@@ -1,5 +1,13 @@
 # quiescent — Nim Implementation Suite
 
+[![Language](https://img.shields.io/badge/Language-Nim-orange?logo=nim)](src)
+[![Platform](https://img.shields.io/badge/Platform-Linux-blue?logo=linux)](https://en.wikipedia.org/wiki/Linux)
+[![Storage](https://img.shields.io/badge/Storage-Standby--Optimized-green)](#)
+[![SMART](https://img.shields.io/badge/SMART%20Diagnostics-Safe--Skip-brightgreen)](#)
+[![WD AV-GP 1TB](https://img.shields.io/badge/WD%20AV--GP%201TB-Standby--safe-green)](#)
+[![Hitachi 2TB](https://img.shields.io/badge/Hitachi%202TB-ro--quiescent-success)](#)
+[![WD Black 4TB](https://img.shields.io/badge/WD%20Black%204TB-auto--standby-success)](#)
+
 A modern, typed, and fully encapsulated implementation of the quiescent disk power management watcher as a suite of compiled binaries. 
 
 The Nim implementation offers type safety, compile-time checks, and cleaner modular boundaries compared to shell oneshot watchers.

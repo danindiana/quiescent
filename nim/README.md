@@ -1,65 +1,110 @@
-# quiescentd — Nim implementation
+# quiescent — Nim Implementation Suite
 
-A typed, encapsulated reimplementation of the shell watcher
-([`../bin/idle-disk-park.sh`](../bin/idle-disk-park.sh)) as a single long-running daemon.
+A modern, typed, and fully encapsulated implementation of the quiescent disk power management watcher as a suite of compiled binaries. 
 
-## Why a second implementation?
+The Nim implementation offers type safety, compile-time checks, and cleaner modular boundaries compared to shell oneshot watchers.
 
-The shell version works, but its state is stringly-typed and lives in shell globals + `/run`
-files. The Nim port encapsulates it properly:
+---
 
-- **`Drive` object** with a `PowerState` enum and a `Mode` enum (`mWatch` / `mTimer`) instead
-  of string-matching `hdparm -C` output ad hoc.
-- **Idle tracking is private** — the `lastIo` / `idleSince` / `haveSample` fields are *not*
-  `*`-exported, so the only way to advance a drive's state is `poll()`. No `/run` state files;
-  the window lives in memory.
-- **Pure, testable config parser** (`parseConfig`: string → `Config`), separate from I/O.
-- **One process** arms timer-mode drives once, then polls watch-mode drives on a cadence —
-  config-driven, so it generalizes to any number of drives (the "generalize the watcher"
-  future-direction).
+## Architecture Overview
 
-| | shell (`idle-disk-park.sh`) | Nim (`quiescentd`) |
-|---|---|---|
-| state | `/run/*` files + globals | in-memory, private fields |
-| types | strings | `Drive` / `PowerState` / `Mode` |
-| drive list | hard-coded in script | `/etc/quiescent.conf` |
-| process model | oneshot per timer tick | one daemon |
+The Nim suite divides operations into a background daemon (`quiescentd`), a command-line controller (`quiescentctl`), a non-intrusive SMART diagnostics wear analyzer (`quiescent_wear`), and an automated remount-on-demand wrapper (`quiescent_mountd`).
 
-## Layout
+![Nim Quiescent Architecture Map](assets/nim_quiescent_architecture.png)
+*(Vector Graphic: [assets/nim_quiescent_architecture.svg](assets/nim_quiescent_architecture.svg))*
 
+---
+
+## 1. The Nim Utilities
+
+### 🛡️ `quiescentd` (The Spindown Daemon)
+* **Description**: A single long-running background daemon that loads the configuration once at startup, arms timer-mode drives, and runs an in-memory watch-loop for timer-ignoring drives.
+* **Key Features**: 
+  * Keeps all state (last IO operations, idle timing windows) in private fields in memory.
+  * No file I/O or state writes in `/run` are generated during normal poll loops, preventing wake-ups of the root/system partitions.
+
+### 🛠️ `quiescentctl` (Control & Management CLI)
+* **Description**: An interactive CLI utility designed to query status, manually spin down disks, or toggle filesystem read-only/read-write permissions.
+* **Usage**:
+  ```bash
+  quiescentctl status                 # Display status table of all configured drives
+  quiescentctl park <drive_by_id>     # Force immediate ATA Standby (spindown)
+  quiescentctl remount-ro <mount>     # Remount partition to read-only (ro)
+  quiescentctl remount-rw <mount>     # Remount partition to read-write (rw)
+  ```
+
+### 🧠 `quiescent_wear` (Non-Intrusive SMART Analyzer)
+* **Description**: Calculates start/stop cycles and evaluates drive fatigue by comparing physical platter spin-ups (`Start_Stop_Count`) to full system boots (`Power_Cycle_Count`).
+* **Safe Polling Flow**: Checks drive status first; **skips standby/sleeping disks** to prevent them from spinning up. Use `--force` to override.
+
+![quiescent_wear Flowchart](assets/nim_wear_smart_flow.png)
+*(Vector Graphic: [assets/nim_wear_smart_flow.svg](assets/nim_wear_smart_flow.svg))*
+
+### 🔄 `quiescent_mountd` (Remount-on-Demand Automation)
+* **Description**: Automation wrapper that remounts quiescent disks to `rw` only when write operations (like backup scripts) need to run, and immediately closes the window.
+* **Usage**:
+  ```bash
+  # Execute rsync within a safe, temporary Read-Write window:
+  quiescent_mountd run -m /mnt/sda1 -c "rsync -a /source/ /mnt/sda1/"
+  
+  # Alternatively, run as a background daemon listening on a Unix Socket:
+  quiescent_mountd listen
+  ```
+
+---
+
+## 2. Configuration (`/etc/quiescent.conf`)
+
+Configuration is whitespace-separated. Lines starting with `#` are ignored. 
+
+```ini
+# Core daemon poll interval (cadence to poll watch-mode drives)
+interval 60
+
+# --- Timer Mode ---
+# Device by-id symlink                           Mode   ATA Standby Value (-S)
+/dev/disk/by-id/ata-Hitachi_HUA723020ALA640_...  timer  12
+
+# --- Watch Mode (For surveillance drives ignoring hardware timers) ---
+# Device by-id symlink                           Mode   Required Idle Seconds
+/dev/disk/by-id/ata-WDC_WD10EURX-63UY4Y0_...     watch  300
 ```
-nim/
-├── quiescent.nimble          package manifest
-├── quiescent.conf.example    sample /etc/quiescent.conf
-├── systemd/quiescentd.service
-└── src/
-    ├── quiescentd.nim        main: arm timers, watch loop
-    └── quiescent/
-        ├── drive.nim         Drive model + hdparm/sysfs ops (encapsulated)
-        └── config.nim        typed config parser
-```
 
-## Build
+---
 
+## 3. Build & Installation
+
+### Build
+Requires the Nim compiler (version >= 2.0.0) and `nimble`:
 ```bash
 cd nim
-nimble build            # -> ./quiescentd   (or: nim c -d:release src/quiescentd.nim)
+nimble build
 ```
+This compiles four standalone binaries in the `nim/` directory: `quiescentd`, `quiescentctl`, `quiescent_wear`, and `quiescent_mountd`.
 
-## Configure & run
-
+### Install
+Installs the daemon, command utilities, and registers the systemd service:
 ```bash
-sudo cp quiescent.conf.example /etc/quiescent.conf   # then edit the by-id paths
-sudo install -m0755 quiescentd /usr/local/bin/
-sudo install -m0644 systemd/quiescentd.service /etc/systemd/system/
+# Install binaries
+sudo install -m 0755 quiescentd quiescentctl quiescent_wear quiescent_mountd /usr/local/bin/
+
+# Install and start Systemd service
+sudo install -m 0644 systemd/quiescentd.service /etc/systemd/system/
+sudo systemctl daemon-reload
 sudo systemctl enable --now quiescentd.service
-journalctl -u quiescentd -f
+
+# Verify daemon logs
+journalctl -u quiescentd.service -f
 ```
 
-It needs root (it calls `hdparm`). `hdparm -C` is used to read power state and is non-intrusive
-(it neither wakes a drive nor resets its standby timer).
+---
 
-> **Note:** this is an *alternative* to the shell oneshots/watcher — run one or the other, not
-> both against the same drives. The reference worlock deployment uses the shell version; this
-> daemon is validated (it force-parks a real drive at the configured idle threshold) and ready
-> to drop in.
+## 4. Why the Nim Port excels over Shell scripting
+
+| Feature | Shell Watcher (`idle-disk-park.sh`) | Nim Port (`quiescentd`) |
+| :--- | :--- | :--- |
+| **State Storage** | File writes in `/run/` on disk | In-memory private objects |
+| **Typing** | String matching | Strongly typed `PowerState` and `Mode` enums |
+| **Performance** | Spawns multiple subprocesses | Single compiled long-running daemon |
+| **Testing** | Tight coupling with I/O | Pure parsing library (`parseConfig`) |
+| **Deployment** | Requires cron/systemd-timers | Standard systemd service daemon |

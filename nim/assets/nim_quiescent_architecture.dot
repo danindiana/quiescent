@@ -1,0 +1,70 @@
+digraph NimArchitecture {
+    bgcolor="#0d0e15"
+    pad="0.5"
+    fontname="Courier New"
+    fontsize=18
+    fontcolor="#00ffcc"
+    label="NIM QUIESCENT SUITE ARCHITECTURE MAP"
+    labelloc="t"
+
+    node [
+        fontname="Courier New"
+        fontsize=9
+        fontcolor="#ffffff"
+        style="filled,solid"
+        fillcolor="#161925"
+        color="#00d2ff"
+        penwidth=2
+        shape=box
+    ]
+    edge [
+        fontname="Courier New"
+        fontsize=8
+        fontcolor="#ff00cc"
+        color="#ff00cc"
+        penwidth=1.5
+    ]
+
+    // Shared Library Modules
+    subgraph cluster_lib {
+        label="Shared Modules (quiescent/*)"
+        color="#a29bfe"
+        style="dashed"
+        fontcolor="#a29bfe"
+        
+        drive_mod [label="drive.nim\n- Drive state tracking\n- parsePowerState()\n- blockDev() & present()\n- powerState() [hdparm -C]\n- forcePark() [hdparm -y]\n- armTimer() [hdparm -S]\n- poll() (in-memory state)", fillcolor="#121e28", color="#00ffcc"]
+        config_mod [label="config.nim\n- parseConfig()\n- loadConfig()\n- Loads /etc/quiescent.conf\n- intervalSecs & Drive list", fillcolor="#121e28", color="#00ffcc"]
+    }
+
+    // Configuration File
+    config_file [label="Configuration File\n/etc/quiescent.conf\n(interval <secs> & <by-id> <mode> <val>)", color="#ffff00", fillcolor="#242411"]
+
+    // Binary Utilities
+    quiescentd [label="quiescentd (Daemon)\n- Starts at boot via systemd\n- Arms timer-mode drives once\n- Watch loop polls drives in memory\n- Issues hdparm -y on idle timeout", color="#00ff88", fillcolor="#11241a"]
+    quiescentctl [label="quiescentctl (Control CLI)\n- Command-line status utility\n- Offers status check & manually park\n- Handles mountpoint remount-ro & remount-rw", color="#00ff88", fillcolor="#11241a"]
+    quiescent_wear [label="quiescent_wear (Wear Diagnostic)\n- Calculates spin-up wear ratios\n- Avoids waking up standby disks\n- Runs smartctl safely (with override)", color="#00ff88", fillcolor="#11241a"]
+    quiescent_mountd [label="quiescent_mountd (Mount Wrapper)\n- Safely wraps backup script runs\n- Remounts rw -> commands -> sync -> ro\n- Listens on Unix socket for commands", color="#00ff88", fillcolor="#11241a"]
+
+    // Host Interfaces (Hardware/OS)
+    sysfs [label="Sysfs Block Devices\n/sys/block/<dev>/stat\n(Read/Write operations counter)", color="#ff9f43", fillcolor="#2d161a"]
+    hdparm [label="ATA Controller via hdparm\n- non-intrusive state query (-C)\n- immediate standby / park (-y)", color="#ff9f43", fillcolor="#2d161a"]
+    smartctl [label="S.M.A.R.T. Attributes\nvia smartctl -a\n(Attribute 4, 9, 12, 193)", color="#ff9f43", fillcolor="#2d161a"]
+    block_mounts [label="File System Mounts\n/mnt/sda1 & /mnt/hitachi_2tb\n(Remount ro/rw)", color="#ff9f43", fillcolor="#2d161a"]
+
+    // Connections
+    config_file -> config_mod [label="Reads config"]
+    config_mod -> quiescentd [label="Loads configuration data", color="#00ffcc"]
+    config_mod -> quiescentctl [label="Loads configuration data", color="#00ffcc"]
+    config_mod -> quiescent_wear [label="Loads configuration data", color="#00ffcc"]
+
+    quiescentd -> drive_mod [label="Polls & transitions state"]
+    quiescentctl -> drive_mod [label="Checks state"]
+    quiescent_wear -> drive_mod [label="Checks state first"]
+
+    drive_mod -> sysfs [label="Reads block I/O statistics"]
+    drive_mod -> hdparm [label="Checks state & forces standby"]
+    
+    quiescent_wear -> smartctl [label="Parses drive SMART info"]
+    quiescentctl -> block_mounts [label="Mount remount execution"]
+    quiescent_mountd -> block_mounts [label="Automated rw/ro windows"]
+}

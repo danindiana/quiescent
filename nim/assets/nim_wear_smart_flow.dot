@@ -1,0 +1,98 @@
+digraph NimWearSmartFlow {
+    bgcolor="#0d0e15"
+    pad="0.5"
+    fontname="Courier New"
+    fontsize=18
+    fontcolor="#ff00cc"
+    label="QUIESCENT_WEAR DIAGNOSTIC FLOW"
+    labelloc="t"
+
+    node [
+        fontname="Courier New"
+        fontsize=9
+        fontcolor="#ffffff"
+        style="filled,solid"
+        fillcolor="#161925"
+        color="#ff00cc"
+        penwidth=2
+        shape=box
+    ]
+    edge [
+        fontname="Courier New"
+        fontsize=8
+        fontcolor="#00ffcc"
+        color="#00ffcc"
+        penwidth=1.5
+    ]
+
+    // Start
+    start [label="START DIAGNOSTICS\nUser executes: quiescent-wear", fillcolor="#2b1426", color="#ff00cc"]
+
+    // Option parsing
+    check_force [label="Check command-line options:\nIs --force flag set?", fillcolor="#121e28", color="#00d2ff"]
+    start -> check_force
+
+    // Config loading
+    load_cfg [label="Load configured drives\nfrom /etc/quiescent.conf", fillcolor="#121e28", color="#00d2ff"]
+    check_force -> load_cfg
+
+    // Loop through drives
+    loop_drive [label="For each configured drive:\nCheck presence & state", fillcolor="#121e28", color="#00d2ff"]
+    load_cfg -> loop_drive
+
+    // Power state query
+    query_state [label="Call drive.powerState()\n(Executes non-intrusive hdparm -C)", fillcolor="#121e28", color="#00d2ff"]
+    loop_drive -> query_state
+
+    // Standby check
+    is_standby [label="Is drive in standby/sleeping\nstate (psStandby / psSleeping)?", fillcolor="#121e28", color="#00d2ff"]
+    query_state -> is_standby
+
+    // Conditional branches
+    force_enabled [label="Is --force enabled?", fillcolor="#242411", color="#ffff00"]
+    is_standby -> force_enabled [label="YES (disk is asleep)"]
+
+    skip_drive [label="SKIP DRIVE SMART QUERY\nOutput: 'SKIPPED (Drive is in Standby/Sleep)'\n(Protects drive from spin-up)", fillcolor="#11241a", color="#00ff88"]
+    force_enabled -> skip_drive [label="NO (Default safety behavior)"]
+
+    run_smart [label="RUN SMART QUERY\nCommand: smartctl -a <drive>\n(Forces platter spin-up)", fillcolor="#2d161a", color="#ff5252"]
+    force_enabled -> run_smart [label="YES (Force override)"]
+    is_standby -> run_smart [label="NO (Disk is already active/idle)", color="#00ff88"]
+
+    // Parsing SMART attributes
+    parse_attribs [label="PARSE SMART ATTRIBUTES\nExtract: POH (9), Power Cycles (12),\nStart/Stop (4), Load Cycles (193),\nTemperature (194)", fillcolor="#121e28", color="#00d2ff"]
+    run_smart -> parse_attribs
+
+    // Calculate ratio
+    calc_wear [label="CALCULATE WEAR RATIO\nRatio = Platter Start/Stop / Power Cycles", fillcolor="#121e28", color="#00d2ff"]
+    parse_attribs -> calc_wear
+
+    // Evaluate ratio
+    eval_wear [label="Evaluate Wear Level", fillcolor="#121e28", color="#00d2ff"]
+    calc_wear -> eval_wear
+
+    subgraph cluster_alerts {
+        label="Wear Ratio Indicators"
+        color="#a29bfe"
+        style="dashed"
+        
+        wear_healthy [label="Ratio <= 5.0:\nGreen Status\n'Healthy / Low Spindown'", fillcolor="#11241a", color="#00ff88"]
+        wear_moderate [label="5.0 < Ratio <= 15.0:\nYellow Status\n'Moderate Spindown Wear'", fillcolor="#242411", color="#ffff00"]
+        wear_critical [label="Ratio > 15.0:\nRed Bold Status\n'CRITICAL WEAR'\nAlerts count of extra fatigue cycles", fillcolor="#2d161a", color="#ff5252"]
+    }
+
+    eval_wear -> wear_healthy
+    eval_wear -> wear_moderate
+    eval_wear -> wear_critical
+
+    next_drive [label="Proceed to next drive", fillcolor="#121e28", color="#00d2ff"]
+    skip_drive -> next_drive
+    wear_healthy -> next_drive
+    wear_moderate -> next_drive
+    wear_critical -> next_drive
+
+    next_drive -> loop_drive [label="More drives in list"]
+    next_drive -> finish [label="All drives processed"]
+
+    finish [label="FINISH DIAGNOSTICS", fillcolor="#2b1426", color="#ff00cc"]
+}
